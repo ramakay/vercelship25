@@ -1,19 +1,5 @@
-// Import Vercel Queue from @vercel/queue
-let send: ((topic: string, payload: unknown) => Promise<void>) | undefined;
-
-// @ts-expect-error - Dynamic import for optional dependency
-const loadQueue = async () => {
-  try {
-    const queue = await import('@vercel/queue');
-    send = queue.send;
-    console.log('Vercel Queue from @vercel/queue is available');
-  } catch {
-    console.log('@vercel/queue not available, will use fallback');
-  }
-};
-
-// Load queue on startup
-void loadQueue();
+// Cost logger using localStorage for persistence
+// Vercel Queue is not available in the current plan
 
 export interface CostLogEntry {
   id: string;
@@ -30,7 +16,7 @@ export interface CostLogEntry {
 class CostLogger {
   private storageKey = 'ai-triage-cost-log';
 
-  // Try to use Vercel Queues first, fallback to localStorage
+  // Log cost entry to localStorage
   async log(entry: Omit<CostLogEntry, 'id' | 'timestamp'>): Promise<void> {
     const logEntry: CostLogEntry = {
       ...entry,
@@ -38,37 +24,7 @@ class CostLogger {
       timestamp: Date.now()
     };
 
-    try {
-      // Try Vercel Queues first (if available)
-      await this.sendToQueue(logEntry);
-    } catch {
-      console.log('Queues unavailable, using localStorage fallback');
-      this.saveToLocalStorage(logEntry);
-    }
-  }
-
-  private async sendToQueue(entry: CostLogEntry): Promise<void> {
-    // Use Vercel Queue if available
-    if (send) {
-      try {
-        // Vercel Queue expects topic name and payload
-        await send('cost-log', entry);
-        console.log('✅ Successfully sent to Vercel Queue');
-        return;
-      } catch (error) {
-        // Check if it's a specific error type
-        const message = error instanceof Error ? error.message : '';
-        if (message.includes('not found') || message.includes('404')) {
-          console.log('Queue topic not found, may need to be created');
-        } else {
-          console.log('Failed to send to Vercel Queue:', error);
-        }
-        throw error;
-      }
-    }
-    
-    // If no queue available, throw error to trigger fallback
-    throw new Error('Vercel Queue not available in this environment');
+    this.saveToLocalStorage(logEntry);
   }
 
   private saveToLocalStorage(entry: CostLogEntry): void {
