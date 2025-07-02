@@ -17,7 +17,7 @@ We built an interactive visualization that:
 ## ✨ Features Demonstrated
 
 ### Vercel Ship 2025 Features
-- **AI Gateway** (Beta) - Multi-model orchestration without managing API keys
+- **AI Gateway** (Beta) - Multi-model orchestration with unified API
 - **Active CPU Pricing** (GA) - Pay only for execution time
 - **Fluid Compute** (GA) - Automatic scaling
 - **Sandbox** (Simulated) - Execute AI-generated code safely
@@ -75,13 +75,19 @@ Visit http://localhost:3000/showdown-anime
 
 ### Environment Setup
 
-The project uses Vercel's OIDC authentication by default. If you need to use an API key:
+This project requires a Vercel AI Gateway API key:
 
 1. Get your key from [Vercel AI Gateway Dashboard](https://vercel.com/dashboard/ai-gateway)
-2. Add to `.env.local`:
+2. Copy the environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Add your API key to `.env.local`:
    ```
    AI_GATEWAY_API_KEY=your_key_here
    ```
+
+> **Note**: OIDC authentication may be available in future versions of the AI Gateway
 
 ## 📊 Cost Breakdown
 
@@ -115,6 +121,26 @@ app/
 └── services/          # Core services
     └── ai-gateway.ts  # Multi-model management
 ```
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+The easiest way to deploy this app is through the [Vercel Platform](https://vercel.com):
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Framakay%2Fvercelship25&env=AI_GATEWAY_API_KEY&envDescription=Required%20API%20key%20for%20Vercel%20AI%20Gateway&envLink=https%3A%2F%2Fvercel.com%2Fdashboard%2Fai-gateway)
+
+Or deploy manually:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+```
+
+**Important**: You'll need to add your `AI_GATEWAY_API_KEY` in the Vercel dashboard under Environment Variables.
 
 ## 🤝 Contributing
 
