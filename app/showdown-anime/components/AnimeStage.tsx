@@ -117,8 +117,153 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     });
   };
 
-  const startStreamingResponses = () => {
-    // Simulate parallel API calls with different response times
+  const startStreamingResponses = async () => {
+    setJudgeComment('Contacting AI models...');
+    
+    try {
+      // Call the real API
+      const response = await fetch('/api/triage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: 'Analyze and optimize this React application for better performance and code quality.'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('API call failed');
+      }
+
+      const data = await response.json();
+      
+      // Process each model's response with staggered animations
+      const modelMapping: Record<string, string> = {
+        'x-ai/grok-3': 'grok',
+        'anthropic/claude-4-opus': 'claude',
+        'google/gemini-2.5-pro': 'gemini'
+      };
+
+      data.responses.forEach((modelResponse: any, index: number) => {
+        const modelId = modelMapping[modelResponse.model] || modelResponse.model.split('/')[1];
+        
+        setTimeout(() => {
+          setActiveModel(modelId);
+          updateModelStatus(modelId, 'active');
+          setJudgeComment(`${modelId.charAt(0).toUpperCase() + modelId.slice(1)} is responding...`);
+          
+          // Show paper plane arriving at card
+          showPaperPlaneAnimation(modelId);
+          
+          // Stream the real response
+          streamRealResponse(modelId, modelResponse);
+        }, (index + 1) * 800);
+      });
+
+      // Store winner info for later
+      if (data.evaluations && data.evaluations[0]) {
+        // Store winner for announceWinner function
+        (window as any).__winner = modelMapping[data.evaluations[0].model] || 'claude';
+      }
+
+    } catch (error) {
+      console.error('Failed to fetch from API:', error);
+      // Fallback to mock data
+      startMockStreamingResponses();
+    }
+  };
+
+  const streamRealResponse = (modelId: string, modelResponse: any) => {
+    // Update judge comment
+    setJudgeComment(`${modelId.charAt(0).toUpperCase() + modelId.slice(1)} is presenting their solution...`);
+    
+    // First animate the response area to show it's active
+    getAnime().then((anime) => {
+      if (!anime) return;
+      
+      // Animate the response background
+      anime({
+        targets: `#card-${modelId} .bg-gray-50`,
+        backgroundColor: ['#f9fafb', '#e5e7eb', '#f9fafb'],
+        duration: 1000,
+        easing: 'easeInOutQuad'
+      });
+      
+      // Show the response text with typewriter effect
+      anime({
+        targets: `#card-${modelId} .response-text`,
+        opacity: [0, 1],
+        duration: 300,
+        easing: 'easeOutQuad'
+      });
+    });
+    
+    // Extract first meaningful sentence or summary
+    const fullText = modelResponse.text;
+    const firstSentence = fullText.split(/[.!?]/)[0] + '.';
+    const displayText = firstSentence.length > 120 
+      ? firstSentence.substring(0, 117) + '...' 
+      : firstSentence;
+    
+    // Animate text appearance with streaming effect
+    let progress = 0;
+    const words = displayText.split(' ');
+    const interval = setInterval(() => {
+      progress += 0.05;
+      if (progress >= 1) {
+        clearInterval(interval);
+        updateModelStatus(modelId, 'complete');
+        
+        // Update with final values
+        setModels(prev => prev.map(m => 
+          m.id === modelId ? {
+            ...m,
+            response: displayText,
+            cost: modelResponse.cost,
+            tokens: modelResponse.completionTokens,
+            status: 'complete' as const
+          } : m
+        ));
+        
+        // Add to total cost once
+        setTotalCost(prev => prev + modelResponse.cost);
+        
+        // Check if all models are complete
+        checkAllComplete();
+      } else {
+        const wordsToShow = Math.floor(words.length * progress);
+        const currentText = words.slice(0, wordsToShow).join(' ');
+        
+        setModels(prev => prev.map(m => 
+          m.id === modelId ? {
+            ...m,
+            response: currentText,
+            cost: modelResponse.cost * progress,
+            tokens: Math.floor(modelResponse.completionTokens * progress)
+          } : m
+        ));
+      }
+    }, 100);
+  };
+
+  const checkAllComplete = () => {
+    setModels(prev => {
+      const allComplete = prev.every(m => m.status === 'complete');
+      
+      if (allComplete && !prev.some(m => m.status === 'judged')) {
+        setTimeout(() => {
+          setJudgeComment('All models have responded. Final verdict ready!');
+          prev.forEach(m => updateModelStatus(m.id, 'judged'));
+          // Announce winner after a brief pause
+          setTimeout(() => announceWinner(), 1500);
+        }, 1000);
+      }
+      
+      return prev;
+    });
+  };
+
+  const startMockStreamingResponses = () => {
+    // Original mock implementation as fallback
     const delays = {
       grok: 800,
       claude: 1200,
@@ -141,14 +286,20 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   };
 
   const announceWinner = () => {
-    setJudgeComment('🎉 Claude wins with superior optimization analysis!');
+    const winner = (window as any).__winner || 'claude';
+    const winnerName = winner.charAt(0).toUpperCase() + winner.slice(1);
+    setJudgeComment(`🎉 ${winnerName} wins with the best optimization approach!`);
     
     getAnime().then((anime) => {
       if (!anime) return;
       
+      // Determine losing cards
+      const allCards = ['grok', 'claude', 'gemini'];
+      const losingCards = allCards.filter(card => card !== winner);
+      
       // Fade out losing cards
       anime({
-        targets: ['#card-grok', '#card-gemini'],
+        targets: losingCards.map(card => `#card-${card}`),
         opacity: [1, 0.3],
         scale: [1.02, 0.95],
         translateY: ['-20', '20'],
@@ -159,7 +310,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       
       // Elevate winner card
       anime({
-        targets: '#card-claude',
+        targets: `#card-${winner}`,
         translateY: ['-20', '-60'],
         scale: [1.02, 1.1],
         easing: 'easeOutElastic(1, .6)',
