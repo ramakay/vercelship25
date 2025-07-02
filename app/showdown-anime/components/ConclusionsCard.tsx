@@ -2,12 +2,7 @@
 
 import { useEffect } from 'react';
 import { 
-  CheckCircle, 
-  AlertCircle, 
-  XCircle,
-  MessageCircle,
   Layers,
-  TrendingUp,
   Monitor,
   Activity,
   FileText,

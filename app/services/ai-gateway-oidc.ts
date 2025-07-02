@@ -1,4 +1,3 @@
-import { generateText } from 'ai';
 import { createGateway } from '@ai-sdk/gateway';
 
 /**

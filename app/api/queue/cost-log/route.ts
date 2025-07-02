@@ -1,33 +1,30 @@
 import { NextResponse } from 'next/server';
 
 // Try to import from @vercel/queue
-let send: any;
-let receive: any;
-try {
-  const { send: queueSend, receive: queueReceive } = require('@vercel/queue');
-  send = queueSend;
-  receive = queueReceive;
-  console.log('Vercel Queue imported successfully from @vercel/queue');
-} catch (e) {
-  console.log('@vercel/queue not available:', e);
-}
+let send: ((topic: string, payload: unknown) => Promise<void>) | undefined;
+// @ts-expect-error - Dynamic import for optional dependency
+const loadQueue = async () => {
+  try {
+    const queue = await import('@vercel/queue');
+    send = queue.send;
+    console.log('Vercel Queue imported successfully from @vercel/queue');
+  } catch {
+    console.log('@vercel/queue not available');
+  }
+};
+
+// Load queue on startup
+void loadQueue();
 
 export async function POST(req: Request) {
   try {
     const { topic, payload } = await req.json();
     
     // Check if we have Vercel Queue available
-    if (send && receive) {
+    if (send) {
       try {
         // Try to send the message
         await send(topic, payload);
-        
-        // Set up a receiver (this might be done elsewhere in production)
-        receive(topic, 'cost-logger-consumer', async (message: any) => {
-          console.log('📨 Received message from queue:', message);
-          // In production, this would persist to a database
-          // For now, we'll just log it
-        });
         
         return NextResponse.json({ 
           success: true, 
@@ -35,11 +32,11 @@ export async function POST(req: Request) {
           topic,
           queueAvailable: true
         });
-      } catch (error: any) {
+      } catch (error) {
         console.error('Queue operation error:', error);
         return NextResponse.json({ 
           success: false, 
-          message: error.message || 'Queue operation failed',
+          message: error instanceof Error ? error.message : 'Queue operation failed',
           queueAvailable: true
         }, { status: 500 });
       }
@@ -62,17 +59,17 @@ export async function POST(req: Request) {
 
 export async function GET() {
   // Health check endpoint
-  const hasQueue = !!(send && receive);
+  const hasQueue = !!send;
   
   // Try a test to see if queue is actually available
   let testResult = 'not tested';
-  if (hasQueue) {
+  if (hasQueue && send) {
     try {
       // Note: This might fail if queue isn't set up
       await send('test-topic', { test: true });
       testResult = 'success';
-    } catch (error: any) {
-      testResult = error.message || 'failed';
+    } catch (error) {
+      testResult = error instanceof Error ? error.message : 'failed';
     }
   }
   

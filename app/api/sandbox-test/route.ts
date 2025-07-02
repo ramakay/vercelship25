@@ -4,18 +4,11 @@ export async function POST(req: Request) {
   try {
     const { code } = await req.json();
     
-    // Try different possible Sandbox API endpoints
-    const sandboxEndpoints = [
-      'https://api.vercel.com/v1/sandbox/execute',
-      'https://api.vercel.com/sandbox/execute',
-      '/api/sandbox/execute',
-    ];
-    
     // Try Vercel's internal sandbox if available
-    // @ts-ignore - Checking if global Vercel object exists
-    if (typeof global.vercel !== 'undefined' && global.vercel.sandbox) {
+    // @ts-expect-error - Checking if global Vercel object exists
+    if (typeof global.vercel !== 'undefined' && global.vercel?.sandbox) {
       try {
-        // @ts-ignore
+        // @ts-expect-error - Using experimental API
         const result = await global.vercel.sandbox.execute(code);
         return NextResponse.json({ 
           success: true, 

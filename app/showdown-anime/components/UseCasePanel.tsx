@@ -2,12 +2,7 @@
 
 import { useEffect } from 'react';
 import { 
-  BarChart2, 
   Zap, 
-  Target, 
-  Check, 
-  AlertTriangle, 
-  X,
   Cloud,
   Cpu,
   Box,
@@ -15,8 +10,7 @@ import {
   Shield,
   Layers,
   GitBranch,
-  User,
-  Clock
+  User
 } from 'react-feather';
 import { getAnime } from '../lib/anime-wrapper';
 
@@ -152,7 +146,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
             <span className="relative">The $10 AI Gateway Experiment</span>
           </h1>
           <p className="text-lg text-gray-600 max-w-xl mx-auto" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic' }}>
-            Testing Vercel's latest features with a startup budget
+            Testing Vercel&apos;s latest features with a startup budget
           </p>
         </div>
         
@@ -328,7 +322,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
         {/* Fine Print */}
         <div className="flex gap-4 text-[10px] leading-relaxed mb-4 usecase-finePrint" style={{ color: '#7a7a7a' }}>
           <p style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
-            <span className="font-semibold">Beta:</span> Subject to Vercel's Public Beta Agreement. Features may change.
+            <span className="font-semibold">Beta:</span> Subject to Vercel&apos;s Public Beta Agreement. Features may change.
           </p>
           <p style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
             <span className="font-semibold">SDK 5:</span> Pin versions. Breaking changes may occur in minor releases.

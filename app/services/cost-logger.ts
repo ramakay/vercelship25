@@ -1,15 +1,19 @@
 // Import Vercel Queue from @vercel/queue
-let send: any;
-let receive: any;
-try {
-  // Try to import from @vercel/queue (the official package)
-  const vercelQueue = require('@vercel/queue');
-  send = vercelQueue.send;
-  receive = vercelQueue.receive;
-  console.log('Vercel Queue from @vercel/queue is available');
-} catch (e) {
-  console.log('@vercel/queue not available, will use fallback');
-}
+let send: ((topic: string, payload: unknown) => Promise<void>) | undefined;
+
+// @ts-expect-error - Dynamic import for optional dependency
+const loadQueue = async () => {
+  try {
+    const queue = await import('@vercel/queue');
+    send = queue.send;
+    console.log('Vercel Queue from @vercel/queue is available');
+  } catch {
+    console.log('@vercel/queue not available, will use fallback');
+  }
+};
+
+// Load queue on startup
+void loadQueue();
 
 export interface CostLogEntry {
   id: string;
@@ -51,9 +55,10 @@ class CostLogger {
         await send('cost-log', entry);
         console.log('✅ Successfully sent to Vercel Queue');
         return;
-      } catch (error: any) {
+      } catch (error) {
         // Check if it's a specific error type
-        if (error.message?.includes('not found') || error.message?.includes('404')) {
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('not found') || message.includes('404')) {
           console.log('Queue topic not found, may need to be created');
         } else {
           console.log('Failed to send to Vercel Queue:', error);

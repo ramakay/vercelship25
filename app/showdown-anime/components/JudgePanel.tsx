@@ -67,7 +67,7 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
                   className="absolute -inset-x-2 -inset-y-1 bg-gradient-to-r from-transparent via-blue-100 to-transparent opacity-40 blur-sm"
                   style={{ animation: 'gradient-shift 4s ease infinite' }}
                 />
-                <span className="relative">"{comment}"</span>
+                <span className="relative">&ldquo;{comment}&rdquo;</span>
               </p>
             )}
           </div>

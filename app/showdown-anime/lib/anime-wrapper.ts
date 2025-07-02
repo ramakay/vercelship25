@@ -1,4 +1,5 @@
 // Client-side wrapper for anime.js v3
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let animeInstance: any = null;
 
 export async function getAnime() {

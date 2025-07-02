@@ -24,6 +24,7 @@ interface ModelData {
 
 export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timelineRef = useRef<any>(null);
   const [activeModel, setActiveModel] = useState<string | null>(null);
   const [totalCost, setTotalCost] = useState(0);
@@ -54,12 +55,15 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     });
     
     return () => {
-      if (timelineRef.current && timelineRef.current.pause) {
-        timelineRef.current.pause();
+      const timeline = timelineRef.current;
+      if (timeline && timeline.pause) {
+        timeline.pause();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const startAnimation = (anime: any) => {
     // First fade out the use case panel
     anime({
@@ -262,6 +266,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resetAnimation = (anime: any) => {
     if (timelineRef.current && timelineRef.current.pause) {
       timelineRef.current.pause();
@@ -470,7 +475,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       <div className="relative h-full flex items-center justify-center">
         {/* Cards container - horizontal layout */}
         <div className="flex gap-12 items-center" style={{ perspective: '1000px', minWidth: '1400px' }}>
-          {models.map((model, index) => (
+          {models.map((model) => (
             <div key={model.id} className="flex-shrink-0">
               <ModelCard
                 id={`card-${model.id}`}

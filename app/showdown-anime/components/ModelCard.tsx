@@ -81,7 +81,7 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
                 minHeight: '200px'
               }}
             >
-              "{model.response}"
+              &ldquo;{model.response}&rdquo;
             </p>
           </div>
         </div>
