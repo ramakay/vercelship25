@@ -32,40 +32,42 @@ Different models excel at different tasks. Which delivers value?
 3. **Judge:** Automated scoring
 4. **Analyze:** Track against $10 budget
 
-## What We Discovered
+## What We Built
 
-After spending **$0.0368** (not $10!), here's what we learned:
+A real-time AI showdown visualization that:
+- Orchestrates multiple AI models through Vercel's AI Gateway
+- Animates responses with paper planes and streaming text
+- Tracks token usage and costs
+- Automatically evaluates responses and declares a winner
 
-### What Worked
+### Technical Highlights
 
-**Easy AI Gateway Setup**  
-Dashboard shows usage and monitoring. Similar to Requesty, OpenRouter offerings.
+**Multi-Model Orchestration**  
+Successfully integrated Grok, Claude, and Gemini through a unified API interface.
 
-**StreamText API**  
-Allows streaming easily, binds in realtime for responsive UX.
+**Streaming Responses**  
+Implemented character-by-character streaming with visual feedback.
 
-**Template Examples**  
-Lots of templates available for quick starts and learning.
+**Cost Tracking**  
+Built real-time cost accumulation with precise decimal tracking.
 
-### Needs Improvement
+### Feature Availability (As Tested)
 
-**Queue Beta Access**  
-Limited beta form was broken. Community link does not exist.
+**Working Features:**
+- AI Gateway (Beta) - Successfully called multiple models
+- Active CPU pricing - Visible in deployment
+- Streaming responses - Implemented with animations
 
-**Most Awaited Features**  
-Sandbox and Queues still unavailable for testing in our Pro account.
+**Unavailable Features:**
+- Queues - Limited beta, no API access
+- Sandbox - Documentation unclear
+- BotID - Not available in current plan
 
-**Gateway Intelligence**  
-No indication of intelligent routing or caching that competitors are starting to provide.
+### Development Experience
 
-**Cost & Usage API**  
-Gateway costs and credits unavailable via API (confirmed by Vercel). Apps cannot adapt behavior based on usage.
+The project evolved from a simple benchmark tool to an immersive animated experience. The AI Gateway worked well for basic multi-model calls, though advanced features like intelligent routing weren't accessible during testing.
 
-### Final Verdict
-
-**Solid foundation with room to grow.** The AI Gateway delivers on its promise of simplified multi-model orchestration. Worth exploring for early adopters comfortable with beta features, but production teams should wait for intelligent routing and full feature availability.
-
-*Recommendation: Use for prototypes and experiments. Monitor the roadmap for GA releases.*
+*Note: This is an experimental project exploring Vercel's Ship 2025 features. Actual costs and performance will vary based on usage.*
 
 ---
 
@@ -201,12 +203,12 @@ app/
 **Active CPU Pricing**
 - **What it solves**: Paying for idle lambda time
 - **Our implementation**: Streaming responses to minimize execution time
-- **Measured impact**: ~40% cost reduction vs traditional lambdas
+- **Result**: Only pay for actual processing time
 
 **Streaming Responses**
 - **What it solves**: Better UX for slow AI responses
 - **Our implementation**: Character-by-character animation
-- **Result**: Perceived performance improvement of 60%
+- **Result**: More engaging user experience
 
 ### 🚧 What We Couldn't Ship
 
@@ -220,24 +222,14 @@ app/
 - **Impact**: Couldn't execute generated code automatically
 - **Future**: Would enable self-modifying applications
 
-## Real Results & Findings
+## Implementation Details
 
-After spending **$0.0368** (not $10!), here's what we discovered:
-
-### Performance Metrics
-```
-Model       | Latency  | Cost      | Tokens | Quality Score
-------------|----------|-----------|--------|---------------
-Grok        | 1.2s     | $0.0037   | 245    | 7.5/10
-Claude      | 2.8s     | $0.0292   | 389    | 9.2/10  ⭐
-Gemini      | 1.8s     | $0.0039   | 312    | 8.1/10
-```
-
-### Key Insights
-
-1. **Claude Consistency**: Won 78% of evaluations despite being 7x more expensive
-2. **Grok Efficiency**: Best tokens-per-dollar ratio for simple queries
-3. **Gemini Balance**: Good middle ground for most use cases
+The project includes:
+- Parallel API calls to multiple models
+- Real-time response streaming
+- Automated evaluation system
+- Cost tracking and budgeting
+- Animated visualization with anime.js
 
 ## Setup and Deployment
 
@@ -286,19 +278,19 @@ See [SECURE-DEPLOYMENT.md](./docs/SECURE-DEPLOYMENT.md) for implementation detai
 - Blur effects use CSS filters with GPU acceleration
 
 ### Network Optimization
-- Response streaming reduces time-to-first-byte by 65%
+- Response streaming for better perceived performance
 - Parallel model execution with independent error handling
-- Automatic retry with exponential backoff
+- Error boundaries for graceful failures
 
 ### Cost Optimization
-- Token counting before API calls
+- Token tracking for budget management
 - First-sentence extraction for display
-- Response caching for identical queries
+- Configurable token limits
 
 ## Lessons Learned
 
 ### 1. Token Economics Matter
-Small optimizations compound. Reducing system prompts by 20 tokens saved 15% on costs at scale.
+Every token counts when working with multiple models. Tracking usage is essential for cost control.
 
 ### 2. Streaming Changes Everything
 Traditional request/response patterns don't work well with LLMs. Streaming requires rethinking error handling, state management, and user feedback.
