@@ -1,23 +1,82 @@
-import DirectArena from './components/DirectArena';
+'use client';
 
-export default function Home() {
-  const benchmarkPrompt = `Vercel Ship 2025 — $10 Feature Benchmark (Next.js 15)
+import { useState } from 'react';
+import AnimeStage from './showdown-anime/components/AnimeStage';
 
-Mission: Spend ≈ USD $10 on a Pro account to benchmark three LLMs through Vercel AI Gateway, rank their answers with a lightweight SWE‑bench–style rubric, execute the best answer in Vercel Sandbox, and capture every metric needed for the LinkedIn article 'I spent $10 on Vercel's latest 2025 Ship features—here's what I found.'
+export default function ShowdownAnimePage() {
+  const [isShowActive, setIsShowActive] = useState(false);
 
-Stack: Next.js 15.0.0-stable (React 19 RC ready), Vercel Pro team with Active CPU + Fluid enabled, AI Gateway (Open Beta), Sandbox (Public Beta), Queues (Limited Beta).
+  return (
+    <div className="min-h-screen bg-white text-black">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        /* Global styles for anime.js */
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Card shadows and depth */
+        .card-shadow {
+          filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+        
+        /* Paper texture */
+        .paper-texture {
+          background-image: 
+            repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 40px,
+              rgba(0,0,0,0.01) 40px,
+              rgba(0,0,0,0.01) 80px
+            );
+        }
+        
+        /* Gradient animation for active cards */
+        @keyframes gradient-shift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        /* Server status pulse */
+        @keyframes server-pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+      `}</style>
+      
 
-Implement:
-1. Feature Availability Probe - Gateway ping, Sandbox ping, Queue probe, record in /status.json
-2. Chat Orchestrator Flow - Parallel calls to 3 models, capture latency/tokens/cost, return ranked results
-3. Model Evaluation & Benchmarking - evaluateResponse() scoring: Relevance (0-10), Reasoning (0-5), Style (0-5), Total Score = Relevance × 2 + Reasoning + Style + (-Latency/1000) + (-Cost×10)
-4. UI - Prompt box, results table with scores, sandbox output, cumulative cost tracker
-5. Cost Logging - Queue if available, else localStorage
-6. Screenshots & Data Export - Playwright automation, Functions/Gateway metrics CSV
+      {/* Reset button - only show when active */}
+      {isShowActive && (
+        <div className="fixed bottom-8 right-8 z-50">
+          <button
+            onClick={() => setIsShowActive(false)}
+            className="px-8 py-4 bg-black text-white text-lg tracking-wider hover:bg-gray-800 transition-colors duration-300 font-medium"
+          >
+            Reset
+          </button>
+        </div>
+      )}
 
-Key files: /app/api/chat/route.ts (orchestrator), /app/bench/evaluate.ts (judge prompts), /app/components/ResultsTable.tsx
-
-Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox execution, exported metrics.`;
-
-  return <DirectArena benchmarkPrompt={benchmarkPrompt} />;
+      {/* Main stage */}
+      <AnimeStage 
+        isActive={isShowActive} 
+        onLaunchCards={() => setIsShowActive(true)}
+      />
+      
+      {/* Server restart indicator */}
+      <div className="fixed bottom-4 left-4 z-50">
+        <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md text-sm">
+          <div 
+            className="w-2 h-2 bg-green-400 rounded-full"
+            style={{ animation: 'server-pulse 2s ease-in-out infinite' }}
+          />
+          <span className="font-mono text-xs">Server restarted • Ready</span>
+        </div>
+      </div>
+    </div>
+  );
 }
