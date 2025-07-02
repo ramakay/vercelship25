@@ -87,7 +87,7 @@ This project requires a Vercel AI Gateway API key:
    AI_GATEWAY_API_KEY=your_key_here
    ```
 
-> **Note**: OIDC authentication may be available in future versions of the AI Gateway
+> **Note**: For enhanced security, see [SECURE-DEPLOYMENT.md](docs/SECURE-DEPLOYMENT.md) for using Vercel's OIDC federation to avoid storing API keys
 
 ## 📊 Cost Breakdown
 
@@ -121,6 +121,21 @@ app/
 └── services/          # Core services
     └── ai-gateway.ts  # Multi-model management
 ```
+
+## 🔒 Security Options
+
+### Basic Setup (Quick Start)
+Use environment variables as shown in the setup instructions above.
+
+### Enterprise Setup (Recommended for Production)
+Vercel offers OIDC federation on all plans for secure backend access:
+
+- **No stored credentials**: Exchange OIDC tokens for temporary API keys
+- **Automatic rotation**: Tokens expire after 60 minutes
+- **Environment isolation**: Different permissions per environment
+- **Audit trail**: Track all credential exchanges
+
+See [SECURE-DEPLOYMENT.md](docs/SECURE-DEPLOYMENT.md) for implementation details.
 
 ## 🚀 Deployment
 
