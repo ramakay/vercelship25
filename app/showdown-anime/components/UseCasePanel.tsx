@@ -30,7 +30,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
         const sections = [
           '.usecase-header',
           '.usecase-story',
-          '.usecase-why',
+          '.usecase-why', 
           '.usecase-method',
           '.usecase-features',
           '.usecase-finePrint',
@@ -40,22 +40,36 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
         sections.forEach((selector, index) => {
           const elements = document.querySelectorAll(selector);
           elements.forEach((el) => {
-            // Set initial blur
+            // Set initial state
             (el as HTMLElement).style.filter = 'blur(15px)';
             (el as HTMLElement).style.opacity = '0';
+            
+            // Add initial shadow state for containers
+            if (selector.includes('story') || selector.includes('why') || selector.includes('method')) {
+              (el as HTMLElement).style.boxShadow = '0 0 0 rgba(0,0,0,0)';
+              (el as HTMLElement).style.transform = 'translateY(20px)';
+            }
           });
           
           anime({
             targets: selector,
             opacity: [0, 1],
-            duration: 600,
-            delay: index * 100,
+            translateY: selector.includes('story') || selector.includes('why') || selector.includes('method') ? [20, 0] : 0,
+            duration: 800,
+            delay: index * 150,
             easing: 'easeOutQuad',
             update: function(anim: any) {
               const progress = anim.progress;
               const blurValue = 15 * (1 - progress / 100);
               elements.forEach((el) => {
                 (el as HTMLElement).style.filter = `blur(${blurValue}px)`;
+                
+                // Animate shadow for containers
+                if (selector.includes('story') || selector.includes('why') || selector.includes('method')) {
+                  const shadowOpacity = 0.08 * (progress / 100);
+                  const shadowBlur = 20 * (progress / 100);
+                  (el as HTMLElement).style.boxShadow = `0 4px ${shadowBlur}px rgba(0,0,0,${shadowOpacity})`;
+                }
               });
             }
           });
@@ -153,7 +167,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
         {/* Three column layout */}
         <div className="grid grid-cols-3 gap-6 mb-6">
           {/* Column 1 - The Story */}
-          <div className="space-y-3 usecase-story">
+          <div className="space-y-3 usecase-story rounded-lg p-4 bg-white" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-2 relative inline-block" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '0.15em' }}>
               <span className="absolute -inset-x-1 -inset-y-0.5 bg-blue-100 opacity-40 blur-sm" />
               <span className="relative">THE STORY</span>
@@ -170,7 +184,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
           </div>
           
           {/* Column 2 - Why It Works */}
-          <div className="space-y-3 usecase-why">
+          <div className="space-y-3 usecase-why rounded-lg p-4 bg-white" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-2 relative inline-block" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '0.15em' }}>
               <span className="absolute -inset-x-1 -inset-y-0.5 bg-green-100 opacity-40 blur-sm" />
               <span className="relative">WHY IT WORKS</span>
@@ -204,7 +218,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
           </div>
           
           {/* Column 3 - The Method */}
-          <div className="space-y-3 usecase-method">
+          <div className="space-y-3 usecase-method rounded-lg p-4 bg-white" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-2 relative inline-block" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '0.15em' }}>
               <span className="absolute -inset-x-1 -inset-y-0.5 bg-purple-100 opacity-40 blur-sm" />
               <span className="relative">THE METHOD</span>
@@ -326,6 +340,9 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
           </p>
           <p style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
             <span className="font-semibold">SDK 5:</span> Pin versions. Breaking changes may occur in minor releases.
+          </p>
+          <p style={{ fontFamily: 'Crimson Text, Georgia, serif', marginLeft: 'auto' }}>
+            Built with ❤️ for shipping fast
           </p>
         </div>
         

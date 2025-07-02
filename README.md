@@ -4,6 +4,73 @@ A deep dive into building cost-efficient, real-time AI applications using Vercel
 
 [Live Demo](https://vercelship25.vercel.app) | [Technical Article](https://linkedin.com/in/ramakay)
 
+![Vercel Ship 2025 AI Showdown](./screenshots/intro-panel.png)
+
+## The Story
+
+In June 2025, Vercel announced Ship. A suite of features for AI applications. With budgets tight, we asked:
+
+**What can $10 actually buy you?**
+
+Testing three AI models: Grok, Claude, and Gemini. Tracking every token and penny spent.
+
+## Why It Works
+
+### Real Constraints
+$10 forces meaningful choices. Just practical developer decisions.
+
+### Active CPU Billing  
+Pay only for execution time. Every millisecond counts.
+
+### Multi-Model Reality
+Different models excel at different tasks. Which delivers value?
+
+## The Method
+
+1. **Parallel:** All three models simultaneously
+2. **Track:** Tokens, latency, and cost
+3. **Judge:** Automated scoring
+4. **Analyze:** Track against $10 budget
+
+## What We Discovered
+
+After spending **$0.0368** (not $10!), here's what we learned:
+
+### What Worked
+
+**Easy AI Gateway Setup**  
+Dashboard shows usage and monitoring. Similar to Requesty, OpenRouter offerings.
+
+**StreamText API**  
+Allows streaming easily, binds in realtime for responsive UX.
+
+**Template Examples**  
+Lots of templates available for quick starts and learning.
+
+### Needs Improvement
+
+**Queue Beta Access**  
+Limited beta form was broken. Community link does not exist.
+
+**Most Awaited Features**  
+Sandbox and Queues still unavailable for testing in our Pro account.
+
+**Gateway Intelligence**  
+No indication of intelligent routing or caching that competitors are starting to provide.
+
+**Cost & Usage API**  
+Gateway costs and credits unavailable via API (confirmed by Vercel). Apps cannot adapt behavior based on usage.
+
+### Final Verdict
+
+**Solid foundation with room to grow.** The AI Gateway delivers on its promise of simplified multi-model orchestration. Worth exploring for early adopters comfortable with beta features, but production teams should wait for intelligent routing and full feature availability.
+
+*Recommendation: Use for prototypes and experiments. Monitor the roadmap for GA releases.*
+
+---
+
+*Built with ❤️ for shipping fast*
+
 ## The Journey: From Concept to Production
 
 ### What We Started With
