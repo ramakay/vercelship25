@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-07-01T03:52:48.472Z",
+  "probes": [
+    {
+      "feature": "Vercel CLI",
+      "command": "vercel --version",
+      "status": "available",
+      "response": "43.1.0\n",
+      "timestamp": "2025-07-01T03:52:47.729Z"
+    },
+    {
+      "feature": "AI Gateway",
+      "command": "vercel ai gateway ls",
+      "status": "error",
+      "error": "Command failed: vercel ai gateway ls\nVercel CLI 43.1.0\nError: Can't deploy more than one path.\n",
+      "timestamp": "2025-07-01T03:52:47.914Z"
+    },
+    {
+      "feature": "Queues",
+      "command": "vercel queue topics ls",
+      "status": "error",
+      "error": "Command failed: vercel queue topics ls\nVercel CLI 43.1.0\nError: Can't deploy more than one path.\n",
+      "timestamp": "2025-07-01T03:52:48.090Z"
+    },
+    {
+      "feature": "Sandbox",
+      "command": "vercel sandbox test",
+      "status": "error",
+      "error": "Command failed: vercel sandbox test\nVercel CLI 43.1.0\nError: Can't deploy more than one path.\n",
+      "timestamp": "2025-07-01T03:52:48.290Z"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "available": 1,
+    "unavailable": 0,
+    "errors": 3
+  }
+}

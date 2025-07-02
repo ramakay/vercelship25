@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-07-01T04:56:12.809Z",
+  "prompt": "Vercel Ship 2025 — $10 Feature Benchmark (Next.js 15)\\n\\nMission: Spend ≈ USD $10 on a Pro account to benchmark three LLMs through Vercel AI Gateway, rank their answers with a lightweight SWE‑bench–style rubric, execute the best answer in Vercel Sandbox, and capture every metric needed for the LinkedIn article 'I spent $10 on Vercel's latest 2025 Ship features—here's what I found.'\\n\\nStack: Next.js 15.0.0-stable (React 19 RC ready), Vercel Pro team with Active CPU + Fluid enabled, AI Gateway (Open Beta), Sandbox (Public Beta), Queues (Limited Beta).\\n\\nImplement:\\n1. Feature Availability Probe - Gateway ping, Sandbox ping, Queue probe, record in /status.json\\n2. Chat Orchestrator Flow - Parallel calls to 3 models, capture latency/tokens/cost, return ranked results\\n3. Model Evaluation & Benchmarking - evaluateResponse() scoring: Relevance (0-10), Reasoning (0-5), Style (0-5), Total Score = Relevance × 2 + Reasoning + Style + (-Latency/1000) + (-Cost×10)\\n4. UI - Prompt box, results table with scores, sandbox output, cumulative cost tracker\\n5. Cost Logging - Queue if available, else localStorage\\n6. Screenshots & Data Export - Playwright automation, Functions/Gateway metrics CSV\\n\\nKey files: /app/api/chat/route.ts (orchestrator), /app/bench/evaluate.ts (judge prompts), /app/components/ResultsTable.tsx\\n\\nSuccess: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox execution, exported metrics.",
+  "evaluations": [
+    {
+      "model": "xai/grok-3",
+      "response": "",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 15
+      },
+      "latency": 120,
+      "cost": 0,
+      "finalScore": 14.88
+    },
+    {
+      "model": "anthropic/claude-4-opus",
+      "response": "",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 15
+      },
+      "latency": 203,
+      "cost": 0,
+      "finalScore": 14.797
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "response": "",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 15
+      },
+      "latency": 278,
+      "cost": 0,
+      "finalScore": 14.722
+    }
+  ],
+  "summary": {
+    "winner": "xai/grok-3",
+    "totalCost": 0,
+    "totalLatency": 279
+  }
+}

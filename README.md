@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vercel Ship 2025 - AI Showdown 🎭
 
-## Getting Started
+An interactive showcase demonstrating Vercel's Ship 2025 features through animated AI model comparisons. Watch as paper planes deliver wisdom from competing AI models in real-time!
 
-First, run the development server:
+🎬 **[Live Demo](https://vercelship25.vercel.app/showdown-anime)** | 📝 **[Article](https://linkedin.com/in/your-profile)**
+
+## 🚀 What's This About?
+
+In June 2025, Vercel announced Ship - a suite of cutting-edge features for AI applications. This project answers: **"What can $10 actually buy you?"**
+
+We built an interactive visualization that:
+- Compares 3 AI models (Grok, Claude, Gemini) in real-time
+- Tracks every token and penny spent
+- Showcases Vercel's new AI Gateway with beautiful animations
+- Stays under a $10 budget constraint
+
+## ✨ Features Demonstrated
+
+### Vercel Ship 2025 Features
+- **AI Gateway** (Beta) - Multi-model orchestration without managing API keys
+- **Active CPU Pricing** (GA) - Pay only for execution time
+- **Fluid Compute** (GA) - Automatic scaling
+- **Sandbox** (Simulated) - Execute AI-generated code safely
+- **Real-time Streaming** - Live token-by-token responses
+
+### Interactive Showcases
+
+#### 🎯 [Anime Showdown](/showdown-anime)
+Our flagship demo featuring:
+- Paper planes delivering AI responses
+- Staggered blur-to-clear animations
+- Judge panel with live commentary
+- Confetti celebration for the winner
+- Editorial-style experiment summary
+
+#### 🎨 [Glass Morphism](/showdown-glass)
+Modern glass UI with particle effects
+
+#### ⚡ [Minimal Arena](/showdown-minimal)
+Clean, performance-focused comparison
+
+## 🛠️ Tech Stack
+
+- **Next.js 15** - Latest stable with React 19 RC
+- **TypeScript** - Type-safe development
+- **Anime.js** - Smooth animations
+- **Tailwind CSS** - Utility-first styling
+- **AI SDK 5 Beta** - Vercel's AI integration
+- **React Feather** - Beautiful icons
+
+## 🚦 Getting Started
+
+### Prerequisites
+- Node.js 20+
+- Vercel account (Pro plan for all features)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/ramakay/vercelship25.git
+cd vercelship25/ai-triage
+
+# Install dependencies
+npm install
+
+# Copy environment variables (optional - uses OIDC by default)
+cp .env.example .env.local
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000/showdown-anime
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The project uses Vercel's OIDC authentication by default. If you need to use an API key:
 
-## Learn More
+1. Get your key from [Vercel AI Gateway Dashboard](https://vercel.com/dashboard/ai-gateway)
+2. Add to `.env.local`:
+   ```
+   AI_GATEWAY_API_KEY=your_key_here
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+## 📊 Cost Breakdown
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+With our $10 budget:
+- **AI Gateway calls**: ~$8.50
+- **Active CPU time**: ~$1.20
+- **Bandwidth**: ~$0.30
+- **Total**: Under $10! ✅
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎮 Available Commands
 
-## Deploy on Vercel
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run ESLint
+npm run probe        # Test feature availability
+npm run screenshots  # Capture UI states
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🏗️ Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+├── showdown-anime/     # Main animated showcase
+│   ├── components/     # React components
+│   └── lib/           # Animation utilities
+├── showdown-glass/     # Glass morphism demo
+├── showdown-minimal/   # Minimal comparison
+├── api/               # API routes
+│   └── triage/        # AI orchestration endpoint
+└── services/          # Core services
+    └── ai-gateway.ts  # Multi-model management
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📈 Performance Notes
+
+- Animations are optimized for 60fps
+- Lazy loading for heavy components
+- Client-side only animations (no SSR overhead)
+- Efficient state management
+
+## 🐛 Known Issues
+
+- Queue features require limited beta access
+- Sandbox execution is simulated (actual API pending)
+- Some animations may stutter on older devices
+
+## 📜 License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## 🙏 Acknowledgments
+
+- Vercel team for Ship 2025 features
+- Anime.js for smooth animations
+- The AI models that made this possible
+- Early adopters testing these features
+
+---
+
+Built with ❤️ for the Vercel Ship 2025 launch. 
+
+*Remember: These features are bleeding edge - perfect for early adopters, but maybe wait for GA in production!*
