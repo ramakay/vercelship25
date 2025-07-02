@@ -56,18 +56,20 @@ export async function POST(request: NextRequest) {
       }
     };
     
-    // Save to benchmarks directory
-    try {
-      const benchmarksDir = path.join(process.cwd(), 'benchmarks');
-      await fs.mkdir(benchmarksDir, { recursive: true });
-      
-      const filename = `benchmark-${Date.now()}.json`;
-      await fs.writeFile(
-        path.join(benchmarksDir, filename),
-        JSON.stringify(benchmarkData, null, 2)
-      );
-    } catch (error) {
-      console.error('Failed to save benchmark data:', error);
+    // Save to benchmarks directory (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const benchmarksDir = path.join(process.cwd(), 'benchmarks');
+        await fs.mkdir(benchmarksDir, { recursive: true });
+        
+        const filename = `benchmark-${Date.now()}.json`;
+        await fs.writeFile(
+          path.join(benchmarksDir, filename),
+          JSON.stringify(benchmarkData, null, 2)
+        );
+      } catch (error) {
+        console.error('Failed to save benchmark data:', error);
+      }
     }
     
     const responseData = {

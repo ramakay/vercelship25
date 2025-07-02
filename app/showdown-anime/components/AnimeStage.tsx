@@ -507,20 +507,108 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   const simulateResponse = (modelId: string) => {
     const mockResponses = {
       grok: { 
-        text: 'Efficiency through minimalism leads to cleaner code and faster execution times',
-        summary: 'Focus on minimalism',
+        text: `I'll analyze your React application for performance optimization. Here are the key areas to focus on:
+
+1. **Component Memoization**: Use React.memo() for functional components that receive stable props to prevent unnecessary re-renders.
+
+\`\`\`jsx
+// Before
+const UserCard = ({ user }) => {
+  return <div>{user.name}</div>;
+};
+
+// After
+const UserCard = React.memo(({ user }) => {
+  return <div>{user.name}</div>;
+});
+\`\`\`
+
+2. **useCallback and useMemo**: Memoize expensive computations and callback functions to maintain referential equality.
+
+3. **Code Splitting**: Implement lazy loading for route-based components to reduce initial bundle size.`,
+        summary: 'Focus on memoization and code splitting',
         cost: 0.0037, 
         tokens: 245 
       },
       claude: { 
-        text: 'Comprehensive systematic analysis reveals multiple optimization opportunities across the codebase architecture',
-        summary: 'Systematic optimization approach', 
+        text: `I'd be happy to help analyze and optimize your React application! To provide comprehensive optimization suggestions, I'll need to see your code. However, here are the key areas I typically focus on:
+
+## Performance Optimizations
+
+1. **Virtual DOM Efficiency**
+   - Minimize unnecessary re-renders using React.memo, useMemo, and useCallback
+   - Implement proper key strategies for lists
+   - Use React DevTools Profiler to identify bottlenecks
+
+2. **Bundle Size Optimization**
+   \`\`\`javascript
+   // Use dynamic imports for code splitting
+   const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
+   
+   // Tree-shake unused exports
+   import { specificFunction } from 'large-library';
+   \`\`\`
+
+3. **State Management**
+   - Colocate state close to where it's used
+   - Consider using useReducer for complex state logic
+   - Implement proper data normalization
+
+## Code Quality Improvements
+
+- Extract custom hooks for reusable logic
+- Implement proper TypeScript types
+- Add comprehensive error boundaries
+- Use ESLint and Prettier for consistency`,
+        summary: 'Comprehensive optimization strategy', 
         cost: 0.0292, 
         tokens: 389 
       },
       gemini: { 
-        text: 'Creative scalable solutions emerge when we combine modern patterns with thoughtful design',
-        summary: 'Creative scalability',
+        text: `Of course! Let me provide a comprehensive guide for optimizing your React application.
+
+### Performance Analysis Framework
+
+First, let's establish metrics for measurement:
+
+\`\`\`javascript
+// Performance monitoring hook
+function usePerformanceMonitor(componentName) {
+  useEffect(() => {
+    const startTime = performance.now();
+    
+    return () => {
+      const endTime = performance.now();
+      console.log(\`\${componentName} render time: \${endTime - startTime}ms\`);
+    };
+  });
+}
+\`\`\`
+
+### Key Optimization Strategies
+
+1. **React.memo with Custom Comparison**
+   \`\`\`jsx
+   const ExpensiveComponent = React.memo(
+     ({ data, userId }) => {
+       // Component logic
+     },
+     (prevProps, nextProps) => {
+       return prevProps.userId === nextProps.userId &&
+              prevProps.data.id === nextProps.data.id;
+     }
+   );
+   \`\`\`
+
+2. **Virtualization for Large Lists**
+   - Use react-window or react-virtualized
+   - Implement infinite scrolling
+   - Lazy load images and content
+
+3. **Optimize Context Usage**
+   - Split contexts by update frequency
+   - Use multiple small contexts instead of one large one`,
+        summary: 'Performance monitoring and virtualization',
         cost: 0.0039, 
         tokens: 312 
       }

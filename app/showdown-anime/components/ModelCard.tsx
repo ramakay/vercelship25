@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import { Maximize2 } from 'react-feather';
+
 interface ModelData {
   id: string;
   name: string;
@@ -16,6 +19,12 @@ interface ModelCardProps {
 }
 
 export default function ModelCard({ id, model, isActive }: ModelCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Extract preview text (first 150 chars)
+  const previewText = model.response.length > 150 
+    ? model.response.substring(0, 147) + '...' 
+    : model.response;
   return (
     <div
       id={id}
@@ -67,22 +76,33 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
           >
             <div className="bg-gray-50 rounded-lg h-full" />
           </div>
-          <div className="relative bg-gray-50 rounded-lg p-6 min-h-[280px] h-full">
-            <p 
-              className="response-text text-2xl leading-relaxed"
-              style={{ 
-                fontFamily: 'Caveat, cursive',
-                color: 'rgba(0,0,0,0.9)',
-                fontSize: '28px',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                opacity: model.response ? 1 : 0,
-                transition: 'opacity 0.3s ease-out',
-                display: 'block',
-                minHeight: '200px'
-              }}
-            >
-              &ldquo;{model.response}&rdquo;
-            </p>
+          <div className="relative bg-gray-50 rounded-lg p-6 min-h-[280px] h-full flex flex-col">
+            <div className="flex-1 overflow-hidden">
+              <p 
+                className="response-text text-lg leading-relaxed"
+                style={{ 
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  color: 'rgba(0,0,0,0.8)',
+                  fontSize: '16px',
+                  opacity: model.response ? 1 : 0,
+                  transition: 'opacity 0.3s ease-out',
+                  display: 'block',
+                  wordBreak: 'break-word'
+                }}
+              >
+                {previewText}
+              </p>
+            </div>
+            {model.response && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                <Maximize2 size={16} />
+                View Full Response
+              </button>
+            )}
           </div>
         </div>
 
@@ -118,6 +138,78 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
           </div>
         )}
       </div>
+      
+      {/* Full Response Modal */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-2xl font-light" style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
+                {model.name} Response
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <FormattedResponse text={model.response} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Component to format response with code blocks
+function FormattedResponse({ text }: { text: string }) {
+  // Split text by code blocks
+  const parts = text.split(/```(\w*)\n([\s\S]*?)```/g);
+  
+  return (
+    <div className="space-y-4">
+      {parts.map((part, index) => {
+        // Even indices are text, odd indices are language, even+1 indices are code
+        if (index % 3 === 0) {
+          // Regular text
+          return part ? (
+            <div key={index} className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+              {part}
+            </div>
+          ) : null;
+        } else if (index % 3 === 2) {
+          // Code block
+          const language = parts[index - 1] || 'plaintext';
+          return (
+            <div key={index} className="relative group">
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => navigator.clipboard.writeText(part)}
+                  className="px-3 py-1 text-xs bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                  Copy
+                </button>
+              </div>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                <code className={`language-${language}`}>{part}</code>
+              </pre>
+            </div>
+          );
+        }
+        return null;
+      })}
     </div>
   );
 }
