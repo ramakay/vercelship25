@@ -7,15 +7,24 @@ import {
   XCircle,
   MessageCircle,
   Layers,
-  TrendingUp
+  TrendingUp,
+  Monitor,
+  Activity,
+  FileText,
+  AlertTriangle,
+  MessageSquare,
+  Shield,
+  Zap,
+  DollarSign
 } from 'react-feather';
 import { getAnime } from '../lib/anime-wrapper';
 
 interface ConclusionsCardProps {
   visible?: boolean;
+  totalCost?: number;
 }
 
-export default function ConclusionsCard({ visible = false }: ConclusionsCardProps) {
+export default function ConclusionsCard({ visible = false, totalCost = 0.0368 }: ConclusionsCardProps) {
   useEffect(() => {
     if (visible) {
       getAnime().then((anime) => {
@@ -37,7 +46,8 @@ export default function ConclusionsCard({ visible = false }: ConclusionsCardProp
           '.conclusions-positive-item',
           '.conclusions-negative-header', 
           '.conclusions-negative-item',
-          '.conclusions-verdict'
+          '.conclusions-verdict',
+          '.conclusions-cost'
         ];
         
         sections.forEach((selector, index) => {
@@ -63,17 +73,6 @@ export default function ConclusionsCard({ visible = false }: ConclusionsCardProp
             }
           });
         });
-        
-        // Animate the cost badge last
-        anime({
-          targets: '.cost-badge',
-          opacity: [0, 1],
-          rotate: [0, 3],
-          scale: [0, 1],
-          delay: 1200,
-          duration: 800,
-          easing: 'easeOutElastic(1, .6)'
-        });
       });
     }
   }, [visible]);
@@ -93,12 +92,19 @@ export default function ConclusionsCard({ visible = false }: ConclusionsCardProp
       <div className="bg-white rounded-lg border border-gray-200 shadow-xl p-8 relative" style={{ backgroundColor: '#fdfcfb' }}>
         {/* Header */}
         <div className="text-center mb-6 conclusions-header">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Layers size={12} strokeWidth={1.5} className="text-gray-400" />
+            <span className="text-xs uppercase tracking-widest text-gray-500" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '0.15em' }}>
+              EXPERIMENT RESULTS • JUNE 2025
+            </span>
+            <Layers size={12} strokeWidth={1.5} className="text-gray-400" />
+          </div>
           <h2 className="text-3xl mb-2 relative inline-block" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontWeight: 400, color: '#2d2d2d' }}>
             <span className="absolute -inset-x-6 -inset-y-1 bg-gradient-to-r from-transparent via-purple-100 to-transparent opacity-60 blur-sm" />
-            <span className="relative">Experiment Conclusions</span>
+            <span className="relative">What We Discovered</span>
           </h2>
-          <p className="text-base text-gray-600" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic' }}>
-            What we learned from spending $10 on Vercel Ship 2025
+          <p className="text-base text-gray-600 max-w-lg mx-auto" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic' }}>
+            After {totalCost < 1 ? `$${totalCost.toFixed(4)}` : `$${totalCost.toFixed(2)}`} spent across three AI models
           </p>
         </div>
         
@@ -106,90 +112,143 @@ export default function ConclusionsCard({ visible = false }: ConclusionsCardProp
         <div className="grid grid-cols-2 gap-4 mb-6">
           {/* Positive findings */}
           <div className="space-y-3">
-            <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-3 flex items-center gap-2 conclusions-positive-header" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              <CheckCircle size={14} className="text-green-500" />
-              WHAT WORKED
+            <h3 className="text-xs uppercase tracking-widest text-gray-400 mb-3 conclusions-positive-header relative inline-block" style={{ 
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.15em',
+              textShadow: '0 1px 2px rgba(255,255,255,0.8)'
+            }}>
+              <span className="absolute -inset-x-2 -inset-y-0.5 bg-green-100 opacity-30 blur-sm" />
+              <span className="relative">WHAT WORKED</span>
             </h3>
             
-            <div className="bg-green-50 border border-green-100 rounded-md p-3 conclusions-positive-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                Easy AI Gateway Setup
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                Dashboard shows usage and monitoring. Similar to Requesty, OpenRouter offerings.
-              </p>
-            </div>
-            
-            <div className="bg-green-50 border border-green-100 rounded-md p-3 conclusions-positive-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                StreamText API
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                Allows streaming easily, binds in realtime for responsive UX.
-              </p>
-            </div>
-            
-            <div className="bg-green-50 border border-green-100 rounded-md p-3 conclusions-positive-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                Template Examples
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                Lots of templates available for quick starts and learning.
-              </p>
+            <div className="p-3 conclusions-positive-item space-y-2.5">
+              <div className="flex items-start gap-2">
+                <Monitor size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Easy AI Gateway Setup
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Dashboard shows usage and monitoring. Similar to Requesty, OpenRouter offerings.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <Activity size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    StreamText API
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Allows streaming easily, binds in realtime for responsive UX.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <FileText size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Template Examples
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Lots of templates available for quick starts and learning.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           
           {/* Issues & Missing features */}
           <div className="space-y-3">
-            <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-3 flex items-center gap-2 conclusions-negative-header" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              <AlertCircle size={14} className="text-amber-500" />
-              NEEDS IMPROVEMENT
+            <h3 className="text-xs uppercase tracking-widest text-gray-400 mb-3 conclusions-negative-header relative inline-block" style={{ 
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.15em',
+              textShadow: '0 1px 2px rgba(255,255,255,0.8)'
+            }}>
+              <span className="absolute -inset-x-2 -inset-y-0.5 bg-amber-100 opacity-30 blur-sm" />
+              <span className="relative">NEEDS IMPROVEMENT</span>
             </h3>
             
-            <div className="bg-amber-50 border border-amber-100 rounded-md p-3 conclusions-negative-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                Queue Beta Access
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                Limited beta form was broken. Community link does not exist.
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-3 conclusions-negative-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                Most Awaited Features
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                Sandbox and Queues still unavailable for testing in our Pro account.
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-3 conclusions-negative-item">
-              <h4 className="text-sm font-semibold mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                Gateway Intelligence
-              </h4>
-              <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                No indication of intelligent routing or caching that competitors are starting to provide.
-              </p>
+            <div className="p-3 conclusions-negative-item space-y-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Queue Beta Access
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Limited beta form was broken. Community link does not exist.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <MessageSquare size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Most Awaited Features
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Sandbox and Queues still unavailable for testing in our Pro account.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <Zap size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Gateway Intelligence
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    No indication of intelligent routing or caching that competitors are starting to provide.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
         {/* Bottom line */}
-        <div className="border-t border-gray-200 pt-4 conclusions-verdict">
-          <div className="bg-gray-50 rounded-md p-4 text-center" style={{ backgroundColor: '#f8f7f6' }}>
-            <p className="text-sm font-medium mb-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-              Final Verdict
-            </p>
-            <p className="text-base" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
-              Solid foundation with room to grow. Worth the $10 for early adopters, but waiting for intelligent routing and full feature availability.
-            </p>
+        <div className="border-t border-gray-200 pt-4 pb-3 conclusions-verdict">
+          <h4 className="text-xs uppercase tracking-widest text-gray-400 mb-3 relative inline-block" style={{ 
+            fontFamily: 'system-ui, -apple-system, sans-serif', 
+            letterSpacing: '0.15em',
+            textShadow: '0 1px 2px rgba(255,255,255,0.8)'
+          }}>
+            <span className="absolute -inset-x-2 -inset-y-0.5 bg-purple-100 opacity-30 blur-sm" />
+            <span className="relative">FINAL VERDICT</span>
+          </h4>
+          
+          <div className="bg-gray-50 rounded-md p-4" style={{ backgroundColor: '#f8f7f6' }}>
+            <div className="flex items-start gap-3">
+              <Shield size={16} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
+                  <span className="font-semibold" style={{ color: '#2d2d2d' }}>Solid foundation with room to grow.</span> The AI Gateway delivers on its promise of simplified multi-model orchestration. 
+                  Worth exploring for early adopters comfortable with beta features, but production teams should wait for intelligent routing and full feature availability.
+                </p>
+                <p className="text-xs mt-2" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic', color: '#6a6a6a' }}>
+                  Recommendation: Use for prototypes and experiments. Monitor the roadmap for GA releases.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         
-        {/* Cost reminder */}
-        <div className="absolute -bottom-4 -right-4 bg-black text-white px-4 py-2 rounded-md transform rotate-3 cost-badge">
-          <p className="text-xs font-mono">Total spent: $10.00</p>
+        {/* Cost reminder - styled like intro card elements */}
+        <div className="mt-4 pt-3 border-t border-gray-100 conclusions-cost">
+          <div className="flex items-center justify-between text-[10px]" style={{ color: '#7a7a7a' }}>
+            <p style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
+              <DollarSign size={10} strokeWidth={1.5} className="inline mr-1 text-gray-400" />
+              <span className="font-semibold">Actual spend:</span> ${totalCost.toFixed(4)} of $10.00 budget
+            </p>
+            <p style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
+              <span className="font-semibold">Models tested:</span> Grok, Claude, Gemini
+            </p>
+          </div>
         </div>
       </div>
     </div>

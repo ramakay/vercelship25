@@ -509,7 +509,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
         />
         
         {/* Conclusions card */}
-        <ConclusionsCard visible={showConclusions} />
+        <ConclusionsCard visible={showConclusions} totalCost={totalCost} />
       </div>
     </div>
   );
