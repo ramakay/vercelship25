@@ -84,10 +84,9 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
                   fontFamily: 'system-ui, -apple-system, sans-serif',
                   color: 'rgba(0,0,0,0.8)',
                   fontSize: '16px',
-                  opacity: model.response ? 1 : 0,
-                  transition: 'opacity 0.3s ease-out',
-                  display: 'block',
-                  wordBreak: 'break-word'
+                  display: model.response ? 'block' : 'none',
+                  wordBreak: 'break-word',
+                  lineHeight: '1.6'
                 }}
               >
                 {previewText}

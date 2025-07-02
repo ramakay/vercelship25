@@ -445,8 +445,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       
       // Reset response text
       anime.set('.response-text', {
-        scaleX: 0,
-        opacity: 1
+        opacity: 0
       });
       
       // Reset card backgrounds
