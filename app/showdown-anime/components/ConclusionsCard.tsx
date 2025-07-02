@@ -207,6 +207,18 @@ export default function ConclusionsCard({ visible = false, totalCost = 0.0368 }:
                   </p>
                 </div>
               </div>
+              
+              <div className="flex items-start gap-2">
+                <DollarSign size={10} strokeWidth={1.5} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                    Cost & Usage API
+                  </h4>
+                  <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                    Gateway costs and credits unavailable via API (confirmed by Vercel). Apps cannot adapt behavior based on usage.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
