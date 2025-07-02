@@ -413,7 +413,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
         // Check if all models are complete
         setModels(prev => {
           const updated = prev.map(m => 
-            m.id === modelId ? { ...m, status: 'complete' } : m
+            m.id === modelId ? { ...m, status: 'complete' as const } : m
           );
           
           const allComplete = updated.every(m => 

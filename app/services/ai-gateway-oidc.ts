@@ -47,4 +47,4 @@ export async function createSecureGateway() {
 }
 
 // Rest of the implementation remains the same...
-export { ModelResponse, TokenUsage } from './ai-gateway';
+export type { ModelResponse, TokenUsage } from './ai-gateway';

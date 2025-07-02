@@ -51,7 +51,7 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
             duration: 600,
             delay: index * 100,
             easing: 'easeOutQuad',
-            update: function(anim) {
+            update: function(anim: any) {
               const progress = anim.progress;
               const blurValue = 15 * (1 - progress / 100);
               elements.forEach((el) => {

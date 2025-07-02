@@ -59,7 +59,7 @@ export default function ConclusionsCard({ visible = false, totalCost = 0.0368 }:
             duration: 800,
             delay: anime.stagger(100, { start: index * 150 }),
             easing: 'easeOutQuad',
-            update: function(anim) {
+            update: function(anim: any) {
               const progress = anim.progress;
               const blurValue = 20 * (1 - progress / 100);
               elements.forEach((el) => {

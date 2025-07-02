@@ -203,7 +203,6 @@ export default function MinimalPodium({ models, totalCost }: MinimalPodiumProps)
               }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              initial={{ scale: 0 }}
               transition={{ 
                 delay: 3,
                 duration: 0.5,
