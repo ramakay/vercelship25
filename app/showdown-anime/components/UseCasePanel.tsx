@@ -155,12 +155,12 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
               VERCEL SHIP • JUNE 2025
             </span>
           </div>
-          <h1 className="text-4xl mb-2 relative inline-block" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontWeight: 400, color: '#2d2d2d' }}>
+          <h1 className="text-5xl mb-2 relative inline-block" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontWeight: 400, color: '#2d2d2d' }}>
             <span className="absolute -inset-x-6 -inset-y-1 bg-gradient-to-r from-transparent via-yellow-100 to-transparent opacity-60 blur-sm" />
             <span className="relative">The $10 AI Gateway Experiment</span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-xl mx-auto" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic' }}>
-            Testing Vercel&apos;s latest features with a startup budget
+          <p className="text-xl text-gray-600 max-w-xl mx-auto" style={{ fontFamily: 'Crimson Text, Georgia, serif', fontStyle: 'italic' }}>
+            Real constraints. Real results.
           </p>
         </div>
         
@@ -172,14 +172,14 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
               <span className="absolute -inset-x-1 -inset-y-0.5 bg-blue-100 opacity-40 blur-sm" />
               <span className="relative">THE STORY</span>
             </h2>
-            <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
-              In June 2025, Vercel announced Ship. A suite of features for AI applications. With budgets tight, we asked: 
+            <p className="text-base leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
+              Vercel Ship 2025. AI Gateway. Limited budget.
             </p>
-            <p className="text-base font-medium" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#2d2d2d' }}>
-              What can $10 actually buy you?
+            <p className="text-lg font-medium" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#2d2d2d' }}>
+              What can $10 actually buy?
             </p>
-            <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
-              Testing three AI models: Grok, Claude, and Gemini. Tracking every token and penny spent.
+            <p className="text-base leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#4a4a4a' }}>
+              Three models. Every token tracked.
             </p>
           </div>
           
@@ -191,27 +191,27 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
             </h2>
             <div className="space-y-2">
               <div className="border-l-2 border-gray-300 pl-3">
-                <h3 className="text-sm font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                <h3 className="text-base font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
                   Real Constraints
                 </h3>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  $10 forces meaningful choices. Just practical developer decisions.
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  $10 forces meaningful choices.
                 </p>
               </div>
               <div className="border-l-2 border-gray-300 pl-3">
-                <h3 className="text-sm font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                <h3 className="text-base font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
                   Active CPU Billing
                 </h3>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  Pay only for execution time. Every millisecond counts.
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  Pay only for what you use.
                 </p>
               </div>
               <div className="border-l-2 border-gray-300 pl-3">
-                <h3 className="text-sm font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
-                  Multi-Model Reality
+                <h3 className="text-base font-semibold" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#2d2d2d' }}>
+                  Model Showdown
                 </h3>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  Different models excel at different tasks. Which delivers value?
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  Who delivers the best value?
                 </p>
               </div>
             </div>
@@ -225,27 +225,27 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
             </h2>
             <div className="bg-gray-50 p-3 rounded-md space-y-1.5" style={{ backgroundColor: '#f8f7f6' }}>
               <div className="flex items-start gap-2">
-                <span className="text-sm" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>1.</span>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  <strong>Parallel:</strong> All three models simultaneously
+                <span className="text-base" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>1.</span>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  <strong>Race:</strong> Three models at once
                 </p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-sm" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>2.</span>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  <strong>Track:</strong> Tokens, latency, and cost
+                <span className="text-base" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>2.</span>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  <strong>Track:</strong> Every penny
                 </p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-sm" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>3.</span>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  <strong>Judge:</strong> Automated scoring
+                <span className="text-base" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>3.</span>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  <strong>Judge:</strong> Pick a winner
                 </p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-sm" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>4.</span>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
-                  <strong>Analyze:</strong> Track against $10 budget
+                <span className="text-base" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#8a8a8a' }}>4.</span>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
+                  <strong>Learn:</strong> What matters
                 </p>
               </div>
             </div>
@@ -269,14 +269,14 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
               <h5 className="text-[11px] uppercase tracking-wide text-gray-400 mb-2" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 Generally Available
               </h5>
-              <div className="flex items-center gap-2 text-xs">
-                <Cpu size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <Cpu size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
                   Active CPU Pricing
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Zap size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <Zap size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>
                   Fluid Compute
                 </span>
@@ -288,20 +288,20 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
               <h5 className="text-[11px] uppercase tracking-wide text-gray-400 mb-1.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 Beta / Limited
               </h5>
-              <div className="flex items-center gap-2 text-xs">
-                <Cloud size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <Cloud size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>AI Gateway</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Box size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <Box size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>Sandbox</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <GitBranch size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <GitBranch size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>Rolling Releases</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <MessageSquare size={10} strokeWidth={1.5} className="text-gray-500" />
+              <div className="flex items-center gap-2 text-sm">
+                <MessageSquare size={12} strokeWidth={1.5} className="text-gray-500" />
                 <span style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#5a5a5a' }}>Queues</span>
               </div>
             </div>
@@ -311,16 +311,16 @@ export default function UseCasePanel({ visible = true, onLaunchCards, showLaunch
               <h5 className="text-[11px] uppercase tracking-wide text-gray-400 mb-1.5" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 Not Available
               </h5>
-              <div className="flex items-center gap-2 text-xs opacity-60">
-                <Shield size={10} strokeWidth={1.5} className="text-gray-400" />
+              <div className="flex items-center gap-2 text-sm opacity-60">
+                <Shield size={12} strokeWidth={1.5} className="text-gray-400" />
                 <span className="line-through" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#7a7a7a' }}>BotID</span>
               </div>
-              <div className="flex items-center gap-2 text-xs opacity-60">
-                <User size={10} strokeWidth={1.5} className="text-gray-400" />
+              <div className="flex items-center gap-2 text-sm opacity-60">
+                <User size={12} strokeWidth={1.5} className="text-gray-400" />
                 <span className="line-through" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#7a7a7a' }}>Vercel Agent</span>
               </div>
-              <div className="flex items-center gap-2 text-xs opacity-60">
-                <Layers size={10} strokeWidth={1.5} className="text-gray-400" />
+              <div className="flex items-center gap-2 text-sm opacity-60">
+                <Layers size={12} strokeWidth={1.5} className="text-gray-400" />
                 <span className="line-through" style={{ fontFamily: 'Crimson Text, Georgia, serif', color: '#7a7a7a' }}>Microfrontends</span>
               </div>
             </div>

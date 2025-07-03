@@ -120,21 +120,41 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   const startStreamingResponses = async () => {
     setJudgeComment('Contacting AI models...');
     
+    // Use mock data for testing (set to false to use real API)
+    const USE_MOCK = true;
+    
+    if (USE_MOCK) {
+      console.log('Using mock data for demo');
+      startMockStreamingResponses();
+      return;
+    }
+    
     try {
-      // Call the real API
+      // Call the real API with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompt: 'Analyze and optimize this React application for better performance and code quality.'
-        })
+        }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('API call failed');
       }
 
       const data = await response.json();
+      
+      // Check if we have valid response data
+      if (!data.responses || !Array.isArray(data.responses) || data.responses.length === 0) {
+        throw new Error('Invalid response format');
+      }
       
       // Process each model's response with staggered animations
       const modelMapping: Record<string, string> = {
@@ -167,6 +187,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
 
     } catch (error) {
       console.error('Failed to fetch from API:', error);
+      console.log('Using mock data as fallback');
       // Fallback to mock data
       startMockStreamingResponses();
     }
@@ -208,7 +229,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     let progress = 0;
     const words = displayText.split(' ');
     const interval = setInterval(() => {
-      progress += 0.05;
+      progress += 0.1;  // Doubled speed
       if (progress >= 1) {
         clearInterval(interval);
         updateModelStatus(modelId, 'complete');
@@ -293,6 +314,22 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     getAnime().then((anime) => {
       if (!anime) return;
       
+      // Check if any modal is open
+      const modalOpen = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+      
+      // If modal is open, only show confetti and conclusions, skip card animations
+      if (modalOpen) {
+        // Create confetti effect without disturbing the modal
+        createConfetti();
+        
+        // Show conclusions after delay
+        setTimeout(() => {
+          setShowConclusions(true);
+        }, 7000);
+        return;
+      }
+      
+      // Otherwise, proceed with full animations
       // Determine losing cards
       const allCards = ['grok', 'claude', 'gemini'];
       const losingCards = allCards.filter(card => card !== winner);
@@ -320,17 +357,17 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       // Create confetti effect with multiple elements
       createConfetti();
       
-      // Show conclusions after 3 seconds
+      // Show conclusions after 7 seconds from winner announcement
       setTimeout(() => {
         setShowConclusions(true);
-      }, 3000);
+      }, 7000);
     });
   };
   
   const createConfetti = () => {
     const confettiContainer = document.createElement('div');
     confettiContainer.className = 'confetti-container';
-    confettiContainer.style.cssText = 'position: fixed; inset: 0; pointer-events: none; z-index: 200;';
+    confettiContainer.style.cssText = 'position: fixed; inset: 0; pointer-events: none; z-index: 190;';
     document.body.appendChild(confettiContainer);
     
     // Create confetti pieces
@@ -506,7 +543,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   const simulateResponse = (modelId: string) => {
     const mockResponses = {
       grok: { 
-        text: `I'll analyze your React application for performance optimization. Here are the key areas to focus on:
+        text: `I'll analyze your React application for performance optimization. The most impactful improvements come from addressing component re-renders, bundle size optimization, and state management efficiency. Here are the key areas to focus on:
 
 1. **Component Memoization**: Use React.memo() for functional components that receive stable props to prevent unnecessary re-renders.
 
@@ -643,7 +680,7 @@ function usePerformanceMonitor(componentName) {
     let progress = 0;
     const words = response.text.split(' ');
     const interval = setInterval(() => {
-      progress += 0.05;
+      progress += 0.1;  // Doubled speed
       if (progress >= 1) {
         clearInterval(interval);
         updateModelStatus(modelId, 'complete');
@@ -695,7 +732,8 @@ function usePerformanceMonitor(componentName) {
         style={{
           backdropFilter: showUseCase ? 'blur(8px)' : 'blur(0px)',
           transition: 'backdrop-filter 0.8s ease-out',
-          zIndex: 40
+          zIndex: 10,
+          pointerEvents: showUseCase ? 'auto' : 'none'
         }}
       />
       
@@ -712,7 +750,7 @@ function usePerformanceMonitor(componentName) {
       {/* Main content area */}
       <div className="relative h-full flex items-center justify-center">
         {/* Cards container - horizontal layout */}
-        <div className="flex gap-12 items-center" style={{ perspective: '1000px', minWidth: '1400px' }}>
+        <div className="flex gap-12 items-center" style={{ perspective: '1000px', minWidth: '1400px', position: 'relative', zIndex: 40 }}>
           {models.map((model) => (
             <div key={model.id} className="flex-shrink-0">
               <ModelCard
@@ -752,7 +790,11 @@ function usePerformanceMonitor(componentName) {
         />
         
         {/* Conclusions card */}
-        <ConclusionsCard visible={showConclusions} totalCost={totalCost} />
+        <ConclusionsCard 
+          visible={showConclusions} 
+          totalCost={totalCost} 
+          onClose={() => setShowConclusions(false)}
+        />
       </div>
     </div>
   );

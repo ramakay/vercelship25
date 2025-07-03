@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Maximize2 } from 'react-feather';
 
 interface ModelData {
@@ -21,9 +21,26 @@ interface ModelCardProps {
 export default function ModelCard({ id, model, isActive }: ModelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Extract preview text (first 150 chars)
-  const previewText = model.response.length > 150 
-    ? model.response.substring(0, 147) + '...' 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false);
+      }
+    };
+    
+    if (isModalOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isModalOpen]);
+  
+  // Extract preview text (first 400 chars for better visibility)
+  const previewText = model.response.length > 400 
+    ? model.response.substring(0, 397) + '...' 
     : model.response;
   return (
     <div
@@ -31,7 +48,9 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
       className="model-card relative w-[380px] h-[520px] card-shadow opacity-0"
       style={{
         transformStyle: 'preserve-3d',
-        transform: 'rotateY(-5deg)'
+        transform: 'rotateY(-5deg)',
+        zIndex: 50,
+        position: 'relative'
       }}
     >
       {/* Card background */}
@@ -141,7 +160,8 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
       {/* Full Response Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          style={{ zIndex: 1000 }}
           onClick={() => setIsModalOpen(false)}
         >
           <div 

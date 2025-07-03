@@ -31,7 +31,7 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
       style={{ 
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.5s ease-out',
-        zIndex: 100,
+        zIndex: 30,
         pointerEvents: visible ? 'auto' : 'none',
         width: '90%',
         maxWidth: '1200px'
@@ -58,17 +58,24 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
             
             {/* Live commentary */}
             {comment && (
-              <p className="text-lg italic text-gray-700 relative inline-block" style={{ 
-                fontFamily: 'Caveat, cursive', 
-                fontSize: '22px',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-              }}>
-                <span 
-                  className="absolute -inset-x-2 -inset-y-1 bg-gradient-to-r from-transparent via-blue-100 to-transparent opacity-40 blur-sm"
-                  style={{ animation: 'gradient-shift 4s ease infinite' }}
+              <div className="relative inline-block mt-2">
+                {/* Animated gradient border */}
+                <div 
+                  className="absolute -inset-0.5 rounded-lg opacity-75"
+                  style={{
+                    background: 'linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b, #fbbf24)',
+                    backgroundSize: '300% 300%',
+                    animation: 'gradient-shift 3s ease infinite'
+                  }}
                 />
-                <span className="relative">&ldquo;{comment}&rdquo;</span>
-              </p>
+                <div className="relative bg-white rounded-lg px-4 py-2">
+                  <p className="font-mono text-lg font-medium text-gray-800" style={{ 
+                    letterSpacing: '0.02em'
+                  }}>
+                    {comment}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
           
