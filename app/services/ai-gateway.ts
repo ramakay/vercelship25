@@ -52,10 +52,18 @@ async function callModel(
   console.log(`Calling ${model}...`);
   
   try {
-    const result = await generateText({
-      model: gateway(model),
-      prompt,
-    });
+    // Add a timeout for individual model calls
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error(`${model} timed out after 25 seconds`)), 25000)
+    );
+    
+    const result = await Promise.race([
+      generateText({
+        model: gateway(model),
+        prompt,
+      }),
+      timeoutPromise
+    ]);
     
     const latency = Date.now() - startTime;
     // AI SDK 5 Beta uses different property names
@@ -106,8 +114,9 @@ export async function triageWithModels(prompt: string): Promise<ModelResponse[]>
       return result.value;
     } else {
       const models: ModelProvider[] = ['xai/grok-3', 'anthropic/claude-4-opus', 'google/gemini-2.5-pro'];
+      console.error(`Model ${models[index]} failed:`, result.reason);
       return {
-        provider: models[index].split('-')[0],
+        provider: models[index].split('/')[0],
         model: models[index],
         text: '',
         latency: 0,
