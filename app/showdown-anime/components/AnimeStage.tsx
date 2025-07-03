@@ -121,7 +121,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     setJudgeComment('Contacting AI models...');
     
     // Use mock data for testing (set to false to use real API)
-    const USE_MOCK = true;
+    const USE_MOCK = false;
     
     if (USE_MOCK) {
       console.log('Using mock data for demo');

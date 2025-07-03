@@ -2,7 +2,9 @@
 
 A deep dive into building cost-efficient, real-time AI applications using Vercel's Ship 2025 features. This project explores practical patterns for multi-model orchestration, token economics, and performance optimization in production AI systems.
 
-[Live Demo](https://vercelship25.vercel.app) | [Technical Article](https://linkedin.com/in/ramakay)
+[Live Demo](https://vercelship25.vercel.app) | [Technical Article](https://linkedin.com/in/rama1)
+
+> **📝 LinkedIn Article Coming Soon**: "I spent $10 on Vercel's latest 2025 Ship features—here's what I found." The full analysis of our journey, including why we couldn't test most Ship 2025 features, how we pivoted to build something meaningful instead, and what this teaches us about developer platforms.
 
 ![Vercel Ship 2025 AI Showdown](./screenshots/intro-panel.png)
 
@@ -365,6 +367,77 @@ Beta feature integration revealed infrastructure limitations:
 - Rate limiting behavior differs significantly from documented specifications
 - Feature flag inconsistencies require defensive programming approaches
 
+## Ship 2025 Feature Availability Reality Check
+
+We set out to test Vercel's Ship 2025 features with $10, but encountered significant roadblocks that limited our experimentation:
+
+### Features We Could Not Test
+
+**1. Queues (Limited Beta)**
+- **Status**: Invite-only limited beta
+- **Community Links**: Broken or unavailable
+- **CLI Commands**: `vercel queue topics ls` returns "command not found"
+- **Impact**: Could not implement asynchronous job processing or background tasks
+
+**2. Sandbox (Public Beta)**
+- **Status**: Listed as "Public Beta" but no functional API access
+- **Documentation**: Insufficient for secure implementation
+- **CLI Commands**: `vercel sandbox test` not recognized
+- **Impact**: Unable to execute AI-generated code safely
+
+**3. BotID (Limited Beta with Kasada)**
+- **Status**: Limited beta requiring special access
+- **Availability**: Not available for Pro tier accounts during testing
+- **Impact**: Could not implement bot detection features
+
+**4. Rolling Releases (GA for Pro+)**
+- **Status**: Marked as "Generally Available" but requires manual dashboard configuration
+- **API Access**: No programmatic access documented
+- **Impact**: Could not automate staged deployments
+
+### What Actually Worked
+
+Despite the limitations, we successfully integrated:
+- **AI Gateway (Alpha)**: Unified access to multiple AI providers
+- **Active CPU Pricing**: Pay-per-millisecond serverless execution
+- **Streaming Responses**: Real-time token delivery with SSE
+
+### The Meta Thought: Why This Matters
+
+After spending hours trying to access features that were supposedly "public beta" or "generally available," we had an epiphany:
+
+**The real value of Vercel isn't in chasing every new feature—it's in the plug-and-play developer experience for what actually works.**
+
+Instead of building a feature checklist demo, we pivoted to create something meaningful: an AI showdown that demonstrates real patterns developers need:
+- Multi-model orchestration with fallback handling
+- Real-time streaming with visual feedback
+- Cost tracking and budget management
+- Performance optimization for production scale
+
+This shift from "testing features" to "solving problems" revealed the true strength of Vercel's platform: **making the complex simple for developers who need to ship fast.**
+
+### The Developer Experience Truth
+
+Vercel excels at:
+- **Zero-config deployments**: Git push → production in seconds
+- **Edge-first architecture**: Global performance by default
+- **Framework integration**: Next.js just works™
+- **Iteration velocity**: Hot reload, instant preview deployments
+
+What needs work:
+- **Beta feature access**: Many advertised features remain inaccessible
+- **Documentation gaps**: Critical implementation details missing
+- **Community resources**: Broken links and outdated examples
+- **Feature discovery**: Unclear what's actually available vs. announced
+
+### The Takeaway
+
+We couldn't test half the Ship 2025 features, but what we built instead proves a larger point: **Great developer platforms enable creativity within constraints.**
+
+The $10 we spent revealed more about production AI economics than any feature checklist could. The animations we added weren't just polish—they solved real UX problems around asynchronous operations.
+
+**[Read the full LinkedIn article](https://linkedin.com/in/rama1)** for a detailed analysis of what $10 teaches us about AI economics, why visual feedback matters for async operations, and how constraints drive better engineering decisions.
+
 ## The Code That Makes It Work
 
 ### Parallel Model Execution
@@ -529,4 +602,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 **Project Status**: Production-ready demonstration of multi-model AI orchestration patterns.
 
-**Technical Inquiries**: Engineering discussions welcome via [LinkedIn](https://linkedin.com/in/ramakay)
+**Technical Inquiries**: Engineering discussions welcome via [LinkedIn](https://linkedin.com/in/rama1)
