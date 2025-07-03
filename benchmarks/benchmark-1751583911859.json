@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-07-03T23:05:11.859Z",
+  "prompt": "Say hello and introduce yourself in one sentence",
+  "evaluations": [
+    {
+      "model": "xai/grok-3",
+      "response": "Hello, I'm thrilled to meet you and introduce myself as your helpful AI assistant, ready to assist with any questions or tasks you might have!",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 4,
+        "style": 4,
+        "explanation": "Evaluation temporarily disabled",
+        "totalScore": 16
+      },
+      "latency": 889,
+      "cost": 0.00049,
+      "finalScore": 15.106100000000001
+    },
+    {
+      "model": "anthropic/claude-4-opus",
+      "response": "Hello! I'm Claude, an AI assistant created by Anthropic to be helpful, harmless, and honest in our conversations.",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 4,
+        "style": 4,
+        "explanation": "Evaluation temporarily disabled",
+        "totalScore": 16
+      },
+      "latency": 3967,
+      "cost": 0.0024749999999999998,
+      "finalScore": 12.00825
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "response": "Hello, I am a large language model, trained by Google.",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 4,
+        "style": 4,
+        "explanation": "Evaluation temporarily disabled",
+        "totalScore": 16
+      },
+      "latency": 6828,
+      "cost": 0.00005875,
+      "finalScore": 9.1714125
+    }
+  ],
+  "summary": {
+    "winner": "xai/grok-3",
+    "totalCost": 0.00302375,
+    "totalLatency": 6829
+  }
+}

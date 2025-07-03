@@ -257,7 +257,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
         : fullText;
     } else {
       // For normal responses, show more content
-      const sentences = fullText.split(/[.!?]/).filter(s => s.trim());
+      const sentences = fullText.split(/[.!?]/).filter((s: string) => s.trim());
       const firstTwoSentences = sentences.slice(0, 2).join('. ') + (sentences.length > 0 ? '.' : '');
       displayText = firstTwoSentences.length > 200 
         ? firstTwoSentences.substring(0, 197) + '...' 
