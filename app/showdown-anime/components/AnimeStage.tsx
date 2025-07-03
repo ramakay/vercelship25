@@ -129,12 +129,14 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       return;
     }
     
+    let response: Response | undefined;
+    
     try {
       // Call the real API with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
-      const response = await fetch('/api/triage', {
+      response = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -158,7 +160,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
       
       // Process each model's response with staggered animations
       const modelMapping: Record<string, string> = {
-        'x-ai/grok-3': 'grok',
+        'xai/grok-3': 'grok',
         'anthropic/claude-4-opus': 'claude',
         'google/gemini-2.5-pro': 'gemini'
       };

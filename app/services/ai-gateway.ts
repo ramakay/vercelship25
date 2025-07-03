@@ -55,7 +55,8 @@ async function callModel(
     const result = await generateText({
       model: gateway(model),
       prompt,
-      maxTokens: 150, // Limit tokens to control costs
+      // Token limits are now set at the gateway level or model level
+      // The AI Gateway handles token limits based on your account settings
     });
     
     const latency = Date.now() - startTime;
