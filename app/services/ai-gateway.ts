@@ -82,15 +82,16 @@ async function callModel(
     };
   } catch (error) {
     console.error(`Error calling ${model}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       provider: model.split('/')[0],
       model,
-      text: '',
+      text: `Error: ${errorMessage}`,
       latency: Date.now() - startTime,
       promptTokens: 0,
       completionTokens: 0,
       cost: 0,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     };
   }
 }

@@ -246,11 +246,23 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     });
     
     // Extract first meaningful sentence or summary
-    const fullText = modelResponse.text;
-    const firstSentence = fullText.split(/[.!?]/)[0] + '.';
-    const displayText = firstSentence.length > 120 
-      ? firstSentence.substring(0, 117) + '...' 
-      : firstSentence;
+    const fullText = modelResponse.text || '';
+    let displayText: string;
+    
+    // Check if it's an error message
+    if (fullText.startsWith('Error:')) {
+      // Show full error message
+      displayText = fullText.length > 120 
+        ? fullText.substring(0, 117) + '...' 
+        : fullText;
+    } else {
+      // For normal responses, show more content
+      const sentences = fullText.split(/[.!?]/).filter(s => s.trim());
+      const firstTwoSentences = sentences.slice(0, 2).join('. ') + (sentences.length > 0 ? '.' : '');
+      displayText = firstTwoSentences.length > 200 
+        ? firstTwoSentences.substring(0, 197) + '...' 
+        : firstTwoSentences;
+    }
     
     // Animate text appearance with streaming effect
     let progress = 0;

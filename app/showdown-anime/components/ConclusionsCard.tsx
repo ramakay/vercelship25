@@ -164,8 +164,9 @@ export default function ConclusionsCard({ visible = false, totalCost = 0.0368, o
           {onClose && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
               aria-label="Close"
+              style={{ zIndex: 1000 }}
             >
               <X size={20} strokeWidth={1.5} className="text-gray-500" />
             </button>
