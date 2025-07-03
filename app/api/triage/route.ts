@@ -33,16 +33,22 @@ export async function POST(request: NextRequest) {
     // Calculate total cost (including potential judge cost)
     const modelCost = calculateTotalCost(responses);
     
-    // Evaluate responses using GPT-4o as judge
-    const evaluatedResponses = await benchmarkResponses(
-      body.prompt,
-      responses.map(r => ({
-        model: r.model,
-        text: r.text,
-        latency: r.latency,
-        cost: r.cost
-      }))
-    );
+    // Temporarily skip evaluation to debug timeout issue
+    // TODO: Re-enable evaluation after fixing timeout
+    const evaluatedResponses = responses.map((r, index) => ({
+      model: r.model,
+      response: r.text,
+      scores: {
+        relevance: 8,
+        reasoning: 4,
+        style: 4,
+        explanation: 'Evaluation temporarily disabled',
+        totalScore: 16
+      },
+      latency: r.latency,
+      cost: r.cost,
+      finalScore: 16 - (r.latency / 1000) - (r.cost * 10)
+    })).sort((a, b) => b.finalScore - a.finalScore);
     
     // Save benchmark results
     const benchmarkData = {

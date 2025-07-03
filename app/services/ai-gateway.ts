@@ -49,6 +49,7 @@ async function callModel(
   prompt: string
 ): Promise<ModelResponse> {
   const startTime = Date.now();
+  console.log(`Calling ${model}...`);
   
   try {
     const result = await generateText({
@@ -88,6 +89,7 @@ async function callModel(
 
 export async function triageWithModels(prompt: string): Promise<ModelResponse[]> {
   console.log('Starting parallel model calls...');
+  console.log('AI_GATEWAY_API_KEY present:', !!process.env.AI_GATEWAY_API_KEY);
   
   // Call all models in parallel
   const modelCalls = [
