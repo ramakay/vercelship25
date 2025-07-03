@@ -1,8 +1,7 @@
 import { generateText } from 'ai';
 import { createGateway } from '@ai-sdk/gateway';
 
-// Create gateway instance - when deployed on Vercel, this automatically
-// uses OIDC authentication. API key is only needed for local development.
+// Create gateway instance with API key
 const gateway = createGateway({
   apiKey: process.env.AI_GATEWAY_API_KEY,
 });
@@ -55,8 +54,6 @@ async function callModel(
     const result = await generateText({
       model: gateway(model),
       prompt,
-      // Token limits are now set at the gateway level or model level
-      // The AI Gateway handles token limits based on your account settings
     });
     
     const latency = Date.now() - startTime;
