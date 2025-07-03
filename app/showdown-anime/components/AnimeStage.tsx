@@ -134,7 +134,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     try {
       // Call the real API with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for AI responses
       
       response = await fetch('/api/triage', {
         method: 'POST',
@@ -195,7 +195,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         if (error.message.includes('abort')) {
-          setJudgeComment('Request timed out. Please try again.');
+          setJudgeComment('Request timed out after 30 seconds. The AI models are taking longer than expected.');
         } else {
           setJudgeComment(`API Error: ${error.message}`);
         }
