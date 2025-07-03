@@ -187,9 +187,34 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
 
     } catch (error) {
       console.error('Failed to fetch from API:', error);
-      console.log('Using mock data as fallback');
-      // Fallback to mock data
-      startMockStreamingResponses();
+      
+      // Detailed error logging
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        if (error.message.includes('abort')) {
+          setJudgeComment('Request timed out. Please try again.');
+        } else {
+          setJudgeComment(`API Error: ${error.message}`);
+        }
+      } else {
+        setJudgeComment('Unknown error occurred');
+      }
+      
+      // Check if it's likely an API key issue
+      if (response && response.status === 500) {
+        console.error('Server error - likely missing AI_GATEWAY_API_KEY environment variable');
+        setJudgeComment('Server configuration error. Please check API settings.');
+      }
+      
+      // Don't fall back to mock - show error state
+      setModels(prev => prev.map(m => ({
+        ...m,
+        response: 'API connection failed',
+        status: 'complete' as const,
+        cost: 0,
+        tokens: 0
+      })));
     }
   };
 
