@@ -1,7 +1,7 @@
 import EnvironmentValidator from './components/EnvironmentValidator';
-import ShowdownAnimePage from './page-client';
+import ShowdownAnimePage from './page';
 
-export default function Page() {
+export default function PageWrapper() {
   return (
     <>
       <EnvironmentValidator />

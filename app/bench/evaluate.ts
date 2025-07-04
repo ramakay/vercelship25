@@ -1,11 +1,15 @@
 import { generateText } from 'ai';
+import { createGateway } from '@ai-sdk/gateway';
 
 export interface EvalScore {
   relevance: number;  // 0-10
   reasoning: number;  // 0-5
   style: number;      // 0-5
+  accuracy: number;   // 0-10 - factual correctness about Vercel features
+  honesty: number;    // 0-5 - acknowledges knowledge limitations
   explanation: string;
   totalScore: number;
+  soundnessScore: number; // reasoning + style (logical coherence)
 }
 
 export interface EvaluationResult {
@@ -17,51 +21,96 @@ export interface EvaluationResult {
   finalScore: number; // Combined score including performance metrics
 }
 
-const JUDGE_MODEL = 'xai/grok-3'; // Using Grok-3 as judge (or could use gpt-4o if available)
+// Create gateway instance
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY,
+});
+
+const JUDGE_MODEL = 'gpt-4o-mini'; // Using GPT-4o-mini as judge for cost efficiency
 
 export async function evaluateResponse(
   userPrompt: string,
   modelResponse: string,
   modelName: string
 ): Promise<EvalScore> {
-  const judgePrompt = `You are an expert evaluator. Score this AI response based on the original user prompt.
+  console.log(`\n=== EVALUATING ${modelName} ===`);
+  
+  try {
+    // Use GPT-4o-mini as judge without web search to ensure fair evaluation
+    console.log('Evaluating response with GPT-4o-mini...');
+    
+    const judgePrompt = `You are an expert evaluator for AI responses about Vercel features.
 
-User Prompt: "${userPrompt}"
+Evaluate the following response based on your knowledge of Vercel's features as of early 2025:
 
-AI Response: "${modelResponse}"
+USER PROMPT: "${userPrompt}"
 
-Evaluate on these criteria:
-1. Relevance (0-10): How well does it answer the user's question? Is it complete and accurate?
+${modelName.toUpperCase()} RESPONSE: "${modelResponse}"
+
+Evaluate the response on these criteria:
+
+1. Relevance (0-10): How well does it answer the user's question? Is it complete?
 2. Reasoning (0-5): Are there logical steps, explanations, or citations where appropriate?
 3. Style (0-5): Is it clear, concise, and well-structured?
+4. Accuracy (0-10): Based on your knowledge of Vercel features, are the facts likely correct?
+   - AI Gateway is in Beta/Open Beta
+   - Sandbox is in Public Beta
+   - Queues is in Limited Beta
+   - Active CPU is Generally Available
+   - Consider if technical approaches are valid for Vercel platform
+5. Honesty (0-5): Does the model acknowledge knowledge limitations?
+   - 5: Explicitly states knowledge cutoff or uncertainty
+   - 3: Makes reasonable disclaimers
+   - 0: Confidently states potentially outdated/wrong information
 
 Respond in JSON format:
 {
   "relevance": <number>,
   "reasoning": <number>,
   "style": <number>,
-  "explanation": "<brief explanation of scores>"
+  "accuracy": <number>,
+  "honesty": <number>,
+  "explanation": "<detailed explanation of your evaluation>"
 }`;
-
-  try {
+    
+    // Use GPT-4o-mini through the gateway
     const result = await generateText({
-      model: JUDGE_MODEL,
+      model: gateway(`openai/${JUDGE_MODEL}`),
       prompt: judgePrompt,
-      temperature: 0.1, // Low temperature for consistent judging
+      temperature: 0.1,
     });
 
-    // Parse the JSON response
-    const scores = JSON.parse(result.text);
+    // Parse the JSON response (handle markdown code blocks)
+    let jsonText = result.text.trim();
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/^```json\s*\n?/, '').replace(/\n?```\s*$/, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```\s*\n?/, '').replace(/\n?```\s*$/, '');
+    }
     
-    // Calculate total score (relevance weighted 2x)
-    const totalScore = (scores.relevance * 2) + scores.reasoning + scores.style;
+    const scores = JSON.parse(jsonText);
+    
+    console.log(`Evaluation complete for ${modelName}:`, {
+      accuracy: scores.accuracy,
+      relevance: scores.relevance,
+      explanation: scores.explanation.substring(0, 100) + '...'
+    });
+    
+    // Calculate soundness score (logical coherence)
+    const soundnessScore = scores.reasoning + scores.style;
+    
+    // Calculate total score (relevance 2x + accuracy 2x + rest)
+    const totalScore = (scores.relevance * 2) + (scores.accuracy * 2) + scores.reasoning + scores.style + scores.honesty;
     
     return {
       relevance: scores.relevance,
       reasoning: scores.reasoning,
       style: scores.style,
+      accuracy: scores.accuracy || 5,
+      honesty: scores.honesty || 2.5,
       explanation: scores.explanation,
-      totalScore
+      totalScore,
+      soundnessScore
     };
   } catch (error) {
     console.error(`Error evaluating response for ${modelName}:`, error);
@@ -70,8 +119,11 @@ Respond in JSON format:
       relevance: 5,
       reasoning: 2.5,
       style: 2.5,
+      accuracy: 5,
+      honesty: 2.5,
       explanation: 'Evaluation failed',
-      totalScore: 15
+      totalScore: 25,
+      soundnessScore: 5
     };
   }
 }
@@ -81,7 +133,7 @@ export function calculateFinalScore(
   latencyMs: number,
   costUsd: number
 ): number {
-  // Total Score = Relevance × 2 + Reasoning + Style + (−Latency/1000) + (−Cost×10)
+  // Final Score = Total Score + (−Latency/1000) + (−Cost×10)
   return evalScore.totalScore - (latencyMs / 1000) - (costUsd * 10);
 }
 

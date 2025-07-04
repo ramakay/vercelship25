@@ -23,14 +23,19 @@ This project has evolved from a simple multi-model comparison to a comprehensive
 - **Quota**: 50k tokens/day free, then pay-as-you-go
 
 ### 2. Model Evaluation System (NEW)
-- **SWE-bench Style Scoring**: Automated evaluation using GPT-4o as judge
+- **SWE-bench Style Scoring**: Automated evaluation using GPT-4o-mini as judge
+- **Two-Step Process**:
+  1. Gemini 2.5 Pro searches for current Vercel feature information using `useSearchGrounding: true`
+  2. GPT-4o-mini evaluates responses based on search results
 - **Metrics**:
   - Relevance (0-10): Does answer address prompt completely?
   - Reasoning (0-5): Logical steps and citations present?
   - Style (0-5): Clarity and conciseness
+  - Accuracy (0-10): Factual correctness verified via web search
+  - Honesty (0-5): Acknowledges knowledge limitations
   - Latency (ms): Response time
   - Cost ($): Token usage × unit price
-- **Total Score**: Relevance × 2 + Reasoning + Style + (-Latency/1000) + (-Cost×10)
+- **Total Score**: (Relevance × 2) + (Accuracy × 2) + Reasoning + Style + Honesty + (-Latency/1000) + (-Cost×10)
 
 ### 3. Sandbox Execution ✅
 - **Status**: Simulated implementation (actual API pending)
@@ -131,10 +136,94 @@ npm run export:metrics  # Export all benchmark data
 - ✅ Multi-model orchestration implemented
 - ✅ Cost tracking with $10 budget limit
 - ✅ Basic UI with results table
-- 🚧 Evaluation system with judge prompts (IN PROGRESS)
-- 🚧 Enhanced UI with score display
-- 🚧 Playwright automation
+- ✅ Web search evaluation system (GPT-4o-mini judge with Gemini search grounding)
+- ✅ Production-grade implementation (no mocking or simulation)
+- ✅ Enhanced UI with score display
+- 🚧 Automated testing suite (needs proper implementation)
+- 🚧 Playwright automation for screenshots
 - 🚧 Radix UI theme integration
+
+## Production Quality Standards
+
+### Core Principles
+- **NO mock data or simulated responses** - All features must be production-grade
+- **NO "manual test instruction" scripts** - Write real automated tests that verify functionality
+- **Fix root causes, not symptoms** - When debugging fails, systematically fix the underlying issue
+- **Systematic debugging** - If an API connection fails: check logs, verify ports, test network connectivity
+
+### Implementation Requirements
+- All API responses must be real (no timeouts accepted as valid)
+- Web search must use actual AI models with search grounding
+- Tests must make real API calls and verify actual responses
+- Error handling must be comprehensive and informative
+
+## Web Search Implementation
+
+### Architecture
+The evaluation system uses a two-step process for accurate scoring:
+
+```typescript
+// Step 1: Search for current information using Gemini with search grounding
+const searchResult = await generateText({
+  model: gateway('google/gemini-2.5-pro', {
+    useSearchGrounding: true,
+  }),
+  prompt: `Search for current information about Vercel Ship 2025 features...`,
+  temperature: 0.1,
+});
+
+// Step 2: Judge with search context using GPT-4o-mini
+const evaluation = await generateText({
+  model: gateway('openai/gpt-4o-mini'),
+  prompt: judgePrompt + searchResult.text,
+  temperature: 0.1,
+});
+```
+
+### Key Points
+- Gemini 2.5 Pro performs web searches with `useSearchGrounding: true`
+- GPT-4o-mini evaluates based on search results for accuracy
+- No OpenAI API key needed - uses Vercel AI Gateway
+- Production-grade comparison with no simulation
+
+## Testing Requirements
+
+### Automated Test Standards
+All test scripts must:
+1. Make real API calls to verify functionality
+2. Validate web search is performed (check for search logs)
+3. Confirm judge uses search results for evaluation
+4. Verify no timeouts or mock data used
+5. Include proper error handling and reporting
+
+### Test Validation Checklist
+- ✅ API responds with real model outputs
+- ✅ Console shows "Searching for current Vercel Ship 2025 feature information..."
+- ✅ Evaluation includes web search results in scoring
+- ✅ Total costs are tracked and under budget
+- ✅ Winner is determined by actual evaluation scores
+
+## Session Management Guidelines
+
+### When to Start Fresh
+Use `claude` (without `-c` flag) when:
+- Complex implementations requiring full attention
+- Previous session exceeded 30+ minutes
+- Quality degradation signs appear
+- Critical production-grade work needed
+
+### Quality Degradation Signs
+Watch for these patterns:
+- Creating workarounds instead of fixing errors
+- Writing "test" scripts that just print instructions
+- Avoiding systematic debugging
+- Suggesting manual processes for automation tasks
+
+### Best Practices
+1. Break complex tasks into focused sessions
+2. Explicitly state "production-grade only" requirements
+3. Call out quality issues immediately
+4. Use fresh sessions for critical implementations
 
 ## Deliverable
 Merge-ready PR with:

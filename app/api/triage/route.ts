@@ -25,7 +25,19 @@ export async function POST(request: NextRequest) {
     const requestStartTime = Date.now();
     
     // Call all models in parallel
+    console.log('\n=== CALLING AI MODELS ===');
+    console.log('Prompt:', body.prompt.substring(0, 100) + '...');
     const responses = await triageWithModels(body.prompt);
+    
+    // Log model responses
+    responses.forEach(r => {
+      console.log(`\n${r.model} responded:`, {
+        latency: `${r.latency}ms`,
+        tokens: `${r.promptTokens} in / ${r.completionTokens} out`,
+        cost: `$${r.cost.toFixed(6)}`,
+        responsePreview: r.text.substring(0, 100) + '...'
+      });
+    });
     
     // Calculate total request time
     const totalLatency = Date.now() - requestStartTime;
@@ -33,22 +45,10 @@ export async function POST(request: NextRequest) {
     // Calculate total cost (including potential judge cost)
     const modelCost = calculateTotalCost(responses);
     
-    // Temporarily skip evaluation to debug timeout issue
-    // TODO: Re-enable evaluation after fixing timeout
-    const evaluatedResponses = responses.map((r, index) => ({
-      model: r.model,
-      response: r.text,
-      scores: {
-        relevance: 8,
-        reasoning: 4,
-        style: 4,
-        explanation: 'Evaluation temporarily disabled',
-        totalScore: 16
-      },
-      latency: r.latency,
-      cost: r.cost,
-      finalScore: 16 - (r.latency / 1000) - (r.cost * 10)
-    })).sort((a, b) => b.finalScore - a.finalScore);
+    // Use real evaluation with web search
+    console.log('Starting real evaluation with web search...');
+    const evaluatedResponses = await benchmarkResponses(body.prompt, responses);
+    console.log('Evaluation complete. Winner:', evaluatedResponses[0].model);
     
     // Save benchmark results
     const benchmarkData = {

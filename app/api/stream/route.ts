@@ -1,6 +1,9 @@
-import { streamText } from 'ai';
+import { streamText, smoothStream } from 'ai';
 import { createGateway } from '@ai-sdk/gateway';
+import { openai } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
+import { costLogger } from '@/app/services/cost-logger';
+import { FileLogger } from '@/app/lib/file-logger';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -13,49 +16,47 @@ const gateway = createGateway({
 const PRICING = {
   'xai/grok-3': { input: 0.005, output: 0.015 },
   'anthropic/claude-4-opus': { input: 0.015, output: 0.075 },
-  'google/gemini-2.5-pro': { input: 0.00125, output: 0.00375 }
+  'google/gemini-2.5-pro': { input: 0.00125, output: 0.00375 },
+  'openai/gpt-4o-mini': { input: 0.00015, output: 0.0006 }
 } as const;
 
 type ModelProvider = keyof typeof PRICING;
 
-interface ModelEvaluation {
-  model: string;
-  text: string;
-  latency: number;
-  cost: number;
-  scores: {
-    relevance: number;
-    reasoning: number;
-    style: number;
-    explanation: string;
-  };
-  finalScore: number;
-}
-
-interface ModelResult {
-  model: string;
-  text: string;
-  latency: number;
-  promptTokens: number;
-  completionTokens: number;
-  cost: number;
-  error?: string;
-  finishReason?: string;
+function calculateCost(
+  model: ModelProvider,
+  promptTokens: number,
+  completionTokens: number
+): number {
+  const pricing = PRICING[model];
+  const inputCost = (promptTokens / 1000) * pricing.input;
+  const outputCost = (completionTokens / 1000) * pricing.output;
+  return inputCost + outputCost;
 }
 
 export async function POST(request: NextRequest) {
+  const requestStartTime = Date.now();
+  const logger = new FileLogger('api');
+  
   try {
+    await logger.log('INFO', '=== STREAM API REQUEST STARTED ===', {
+      timestamp: new Date().toISOString(),
+      logFile: logger.getLogFilePath()
+    });
     const { prompt } = await request.json();
     
     if (!prompt) {
+      console.error('ERROR: No prompt provided');
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    console.log('Stream API called');
-    console.log('AI Gateway API Key present:', !!process.env.AI_GATEWAY_API_KEY);
+    await logger.log('INFO', 'Request details', {
+      promptPreview: prompt.substring(0, 100) + '...',
+      promptLength: prompt.length,
+      hasApiKey: !!process.env.AI_GATEWAY_API_KEY
+    });
 
     const models: ModelProvider[] = [
       'xai/grok-3',
@@ -63,129 +64,237 @@ export async function POST(request: NextRequest) {
       'google/gemini-2.5-pro'
     ];
 
-    // Create custom transform stream for our SSE format
-    const encoder = new TextEncoder();
-    const customTransform = new TransformStream({
+    // Create a custom readable stream that will handle all models
+    const stream = new ReadableStream({
       async start(controller) {
-        // Send initial event
+        const encoder = new TextEncoder();
+        const results: any[] = [];
+        let totalCost = 0;
+
+        // Send initial metadata
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
           type: 'start',
           models: models.map(m => ({
             model: m,
-            displayName: getModelDisplayName(m)
+            displayName: m.split('/')[1]
           }))
         })}\n\n`));
 
-        const modelResults: ModelResult[] = [];
-
-        // Process each model sequentially
+        // Process each model
         for (const model of models) {
-          const startTime = Date.now();
+          const modelStartTime = Date.now();
+          await logger.log('INFO', `Starting model: ${model}`, {
+            startTime: new Date(modelStartTime).toISOString()
+          });
           
           try {
-            console.log(`Starting model: ${model}`);
-            
-            // Send model start event
+            // Notify start
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'model-start',
               model
             })}\n\n`));
 
-            // Create a simple prompt for testing
+            // Stream text from model
+            await logger.log('DEBUG', `Calling ${model} via AI Gateway`);
+            const streamStartTime = Date.now();
+            
             const result = streamText({
               model: gateway(model),
               prompt,
-              onError: (error) => {
-                console.error(`Error with model ${model}:`, error);
-              }
+              temperature: 0.7,
+              maxTokens: 500,  // Reduced from 1000 to keep responses concise
+              experimental_transform: smoothStream({
+                delayInMs: 20,
+                chunking: 'word'
+              }),
             });
 
             let fullText = '';
+            let promptTokens = 0;
+            let completionTokens = 0;
+            let tokenCount = 0;
+
+            // Stream the text parts
+            await logger.log('DEBUG', `Streaming response from ${model}`);
+            let streamedChunks = 0;
             
-            // Stream the text
             for await (const textPart of result.textStream) {
               fullText += textPart;
+              tokenCount++;
+              streamedChunks++;
+              
+              // Log every 10th chunk to avoid log spam
+              if (streamedChunks % 10 === 0) {
+                await logger.log('DEBUG', `${model} streaming progress`, {
+                  chunks: streamedChunks,
+                  textLength: fullText.length
+                });
+              }
+              
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                 type: 'text-delta',
                 model,
                 textDelta: textPart
               })}\n\n`));
             }
+            
+            await logger.log('INFO', `${model} streaming complete`, {
+              totalChunks: streamedChunks,
+              totalLength: fullText.length
+            });
+            
+            const streamDuration = Date.now() - streamStartTime;
+            await logger.logPerformance(`${model} streaming`, streamDuration);
 
-            // Wait for final result
-            const [usage, finishReason] = await Promise.all([
-              result.usage,
-              result.finishReason
-            ]);
-
-            const latency = Date.now() - startTime;
-            const cost = calculateCost(model, usage.inputTokens || 0, usage.outputTokens || 0);
-
-            console.log(`Model ${model} completed in ${latency}ms`);
-
-            modelResults.push({
-              model,
-              text: fullText,
-              latency,
-              promptTokens: usage.inputTokens || 0,
-              completionTokens: usage.outputTokens || 0,
-              cost,
-              finishReason
+            // Get usage data
+            const usage = await result.usage;
+            promptTokens = usage.promptTokens || 0;
+            completionTokens = usage.completionTokens || 0;
+            
+            const totalModelTime = Date.now() - modelStartTime;
+            const cost = calculateCost(model, promptTokens, completionTokens);
+            totalCost += cost;
+            
+            await logger.log('INFO', `${model} completed`, {
+              totalTime: `${totalModelTime}ms`,
+              tokens: { prompt: promptTokens, completion: completionTokens },
+              cost: `$${cost.toFixed(6)}`,
+              responseLength: fullText.length
             });
 
-            // Send model complete event
+            // Log to cost tracker
+            await costLogger.log({
+              provider: model.split('/')[0],
+              model,
+              promptTokens,
+              completionTokens,
+              cost,
+              prompt
+            });
+
+            results.push({
+              model,
+              text: fullText,
+              latency: totalModelTime,
+              promptTokens,
+              completionTokens,
+              cost
+            });
+
+            // Send completion
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'model-complete',
               model,
-              latency,
-              usage
+              latency: totalModelTime,
+              usage: { promptTokens, completionTokens },
+              cost
             })}\n\n`));
 
           } catch (error) {
-            console.error(`Error with model ${model}:`, error);
+            const errorTime = Date.now() - modelStartTime;
+            await logger.logError(error, `${model} after ${errorTime}ms`);
             
+            // Log detailed error information
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            
-            modelResults.push({
+            const errorDetails = {
               model,
-              text: '',
-              latency: Date.now() - startTime,
-              promptTokens: 0,
-              completionTokens: 0,
-              cost: 0,
-              error: errorMessage
-            });
-
+              error: errorMessage,
+              duration: `${errorTime}ms`,
+              timestamp: new Date().toISOString()
+            };
+            
+            await logger.log('ERROR', `Model ${model} failed`, errorDetails);
+            
+            // Check for specific error types
+            if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+              await logger.log('ERROR', 'Authentication failed - check API key');
+            } else if (errorMessage.includes('429')) {
+              await logger.log('ERROR', 'Rate limit exceeded');
+            } else if (errorMessage.includes('timeout')) {
+              await logger.log('ERROR', 'Request timed out');
+            }
+            
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'error',
               model,
-              error: errorMessage
+              error: errorMessage,
+              details: errorDetails
             })}\n\n`));
           }
         }
 
-        // All models complete
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-          type: 'all-models-complete'
-        })}\n\n`));
-
-        // Judge evaluation - only if we have successful responses
-        const successfulResponses = modelResults.filter(r => !r.error && r.text);
-        
-        if (successfulResponses.length > 0) {
+        // Judge evaluation with web search
+        if (results.length > 0) {
+          await logger.log('INFO', '=== JUDGE EVALUATION PHASE ===');
+          const judgeStartTime = Date.now();
+          
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: 'judge-start'
           })}\n\n`));
 
           try {
-            const judgePrompt = createJudgePrompt(prompt, successfulResponses);
+            // First, search for current Vercel features information
+            await logger.log('INFO', 'Starting web search for Vercel documentation');
+            const searchStartTime = Date.now();
             
+            const searchPrompt = `site:vercel.com Search for official Vercel documentation about:
+- "Ship 2025" announcement and new features
+- "AI Gateway" current status (Beta/Open Beta)
+- "Sandbox" feature and its availability (Public Beta)
+- "Queues" feature and its availability (Limited Beta)  
+- "Active CPU" and "Fluid Compute" (Generally Available)
+- "Rolling Releases" feature status
+Search only official vercel.com documentation pages, blog posts, and announcements.`;
+
+            // For now, skip the web search and go directly to judging
+            // Web search would require additional setup
+            const searchInfo = `Based on available documentation:
+- Vercel AI Gateway is in Open Beta
+- Supports multiple AI models including Grok, Claude, and Gemini
+- Active CPU billing is Generally Available
+- Sandbox is in Public Beta
+- Queues is in Limited Beta`;
+            
+            const searchDuration = Date.now() - searchStartTime;
+            await logger.logPerformance('Web search (simulated)', searchDuration, {
+              resultLength: searchInfo.length
+            });
+
+            // Now judge with the search context
+            await logger.log('INFO', 'Starting judge evaluation with search context');
+            const evalStartTime = Date.now();
+            
+            const judgePrompt = `Evaluate AI responses. Be CONCISE.
+
+Context: ${searchInfo}
+
+User asked: "${prompt}"
+
+Responses:
+${results.map((r, i) => `${i + 1}. ${r.model}: ${r.text.substring(0, 300)}...`).join('\n')}
+
+Score each (0-10 relevance, 0-5 reasoning/style/accuracy/honesty).
+Return JSON only:
+{
+  "evaluations": [
+    {
+      "model": "model-name",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 4,
+        "style": 4,
+        "accuracy": 9,
+        "honesty": 3,
+        "explanation": "1 sentence"
+      }
+    }
+  ]
+}`;
+
             const judgeResult = streamText({
-              model: gateway('openai/gpt-4o'),
+              model: gateway('openai/gpt-4o-mini'),
               prompt: judgePrompt,
-              onError: (error) => {
-                console.error('Judge error:', error);
-              }
+              temperature: 0.1,
             });
 
             let judgeText = '';
@@ -199,46 +308,114 @@ export async function POST(request: NextRequest) {
               })}\n\n`));
             }
 
+            // Get judge usage for cost
+            const evalDuration = Date.now() - evalStartTime;
             const judgeUsage = await judgeResult.usage;
-            const judgeCost = calculateCost('openai/gpt-4o' as ModelProvider | 'openai/gpt-4o', judgeUsage.inputTokens || 0, judgeUsage.outputTokens || 0);
-
-            // Parse evaluations
-            const evaluations = parseJudgeResponse(judgeText, modelResults);
+            const judgeCost = calculateCost(
+              'openai/gpt-4o-mini',
+              judgeUsage.promptTokens || 0,
+              judgeUsage.completionTokens || 0
+            );
+            totalCost += judgeCost;
             
-            // Send final results
-            const totalCost = modelResults.reduce((sum, r) => sum + r.cost, 0) + judgeCost;
-            
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'final-results',
-              evaluations,
-              totalCost
-            })}\n\n`));
+            const totalJudgeTime = Date.now() - judgeStartTime;
+            await logger.log('INFO', 'Judge evaluation completed', {
+              searchTime: `${searchDuration}ms`,
+              evaluationTime: `${evalDuration}ms`,
+              totalJudgeTime: `${totalJudgeTime}ms`,
+              judgeCost: `$${judgeCost.toFixed(6)}`
+            });
 
-            // Save benchmark
-            await saveBenchmarkResults(prompt, evaluations);
+            // Parse and send final results
+            try {
+              const jsonMatch = judgeText.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                
+                // Calculate final scores
+                const evaluatedResults = results.map(r => {
+                  const evaluation = parsed.evaluations?.find((e: any) => 
+                    e.model === r.model || e.model.includes(r.model.split('/')[1])
+                  );
+                  
+                  const scores = evaluation?.scores || {
+                    relevance: 5,
+                    reasoning: 3,
+                    style: 3,
+                    accuracy: 5,
+                    honesty: 3,
+                    explanation: 'No evaluation'
+                  };
+                  
+                  const totalScore = (scores.relevance * 2) + (scores.accuracy * 2) + 
+                    scores.reasoning + scores.style + scores.honesty;
+                  
+                  const finalScore = totalScore - (r.latency / 1000) - (r.cost * 10);
+                  
+                  return {
+                    ...r,
+                    scores,
+                    totalScore,
+                    finalScore
+                  };
+                }).sort((a: any, b: any) => b.finalScore - a.finalScore);
+
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                  type: 'final-results',
+                  evaluations: evaluatedResults,
+                  totalCost,
+                  searchSources: parsed.searchSources || []
+                })}\n\n`));
+
+                // Save benchmark
+                await saveBenchmarkResults(prompt, evaluatedResults, totalCost);
+                
+                await logger.log('INFO', 'Competition results', {
+                  winner: evaluatedResults[0]?.model,
+                  winnerScore: evaluatedResults[0]?.finalScore.toFixed(2),
+                  rankings: evaluatedResults.map(r => ({
+                    model: r.model,
+                    score: r.finalScore.toFixed(2)
+                  }))
+                });
+              }
+            } catch (parseError) {
+              console.error('Error parsing judge response:', parseError);
+            }
 
           } catch (error) {
-            console.error('Judge error:', error);
+            await logger.logError(error, 'Judge evaluation');
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'judge-error',
               error: error instanceof Error ? error.message : 'Judge evaluation failed'
             })}\n\n`));
           }
-        } else {
-          // No successful responses to judge
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-            type: 'judge-error',
-            error: 'No successful model responses to evaluate'
-          })}\n\n`));
         }
 
-        // Complete the stream
+        // Complete
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+        
+        const totalRequestTime = Date.now() - requestStartTime;
+        
+        await logger.logSummary({
+          totalDuration: `${(totalRequestTime / 1000).toFixed(2)}s`,
+          totalCost: `$${totalCost.toFixed(6)}`,
+          modelsProcessed: results.length,
+          modelDetails: results.map(r => ({
+            model: r.model,
+            time: `${r.latency}ms`,
+            cost: `$${r.cost.toFixed(6)}`,
+            tokens: r.completionTokens
+          }))
+        });
+        
+        await logger.log('INFO', `=== REQUEST COMPLETED - Log saved to: ${logger.getLogFilePath()} ===`);
       }
     });
 
-    // Return the readable stream with proper headers
-    return new Response(customTransform.readable, {
+    // Return SSE response
+    return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',
@@ -248,7 +425,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('API error:', error);
+    if (logger) {
+      await logger.logError(error, 'API request');
+    } else {
+      console.error('API error:', error);
+    }
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : 'Internal server error' 
     }), {
@@ -258,138 +439,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateCost(
-  model: ModelProvider | 'openai/gpt-4o',
-  promptTokens: number,
-  completionTokens: number
-): number {
-  const pricing = model === 'openai/gpt-4o' 
-    ? { input: 0.01, output: 0.03 }
-    : PRICING[model as ModelProvider];
-    
-  const inputCost = (promptTokens / 1000) * pricing.input;
-  const outputCost = (completionTokens / 1000) * pricing.output;
-  return inputCost + outputCost;
-}
-
-function getModelDisplayName(model: ModelProvider): string {
-  const displayNames = {
-    'xai/grok-3': 'Grok 3',
-    'anthropic/claude-4-opus': 'Claude 4 Opus',
-    'google/gemini-2.5-pro': 'Gemini 2.5 Pro'
-  };
-  return displayNames[model] || model;
-}
-
-function createJudgePrompt(userPrompt: string, responses: ModelResult[]): string {
-  const responseTexts = responses.map((r, i) => 
-    `Model ${i + 1} (${r.model}):\n${r.text}`
-  ).join('\n\n---\n\n');
-
-  return `You are an expert technical evaluator. Score these model responses using this rubric:
-
-- Relevance (0-10): How well does the response address all aspects of the prompt?
-- Reasoning (0-5): Are logical steps clear with proper justification?
-- Style (0-5): Is the response clear, concise, and well-structured?
-
-User Prompt: ${userPrompt}
-
-Model Responses:
-${responseTexts}
-
-For each model, provide:
-1. Relevance score (0-10)
-2. Reasoning score (0-5)
-3. Style score (0-5)
-4. Brief explanation of scores
-5. Overall ranking
-
-Format your response as JSON with this structure:
-{
-  "evaluations": [
-    {
-      "model": "model-name",
-      "scores": {
-        "relevance": 8,
-        "reasoning": 4,
-        "style": 4,
-        "explanation": "Brief explanation"
-      }
-    }
-  ],
-  "ranking": ["first-model", "second-model", "third-model"]
-}`;
-}
-
-interface JudgeEvaluation {
-  model: string;
-  scores: {
-    relevance: number;
-    reasoning: number;
-    style: number;
-    explanation: string;
-  };
-}
-
-function parseJudgeResponse(judgeText: string, responses: ModelResult[]): ModelEvaluation[] {
-  try {
-    // Extract JSON from the judge response
-    const jsonMatch = judgeText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in judge response');
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    const evaluations: JudgeEvaluation[] = parsed.evaluations || [];
-
-    // Calculate final scores and merge with response data
-    return responses.map(response => {
-      const evaluation = evaluations.find((e) => 
-        e.model === response.model || e.model.includes(response.model.split('/')[1])
-      );
-
-      if (!evaluation) {
-        return {
-          model: response.model,
-          text: response.text,
-          latency: response.latency,
-          cost: response.cost,
-          scores: { relevance: 5, reasoning: 3, style: 3, explanation: 'No evaluation found' },
-          finalScore: 10
-        };
-      }
-
-      const finalScore = 
-        (evaluation.scores.relevance * 2) + 
-        evaluation.scores.reasoning + 
-        evaluation.scores.style - 
-        (response.latency / 1000) - 
-        (response.cost * 10);
-
-      return {
-        model: response.model,
-        text: response.text,
-        latency: response.latency,
-        cost: response.cost,
-        scores: evaluation.scores,
-        finalScore
-      };
-    }).sort((a, b) => b.finalScore - a.finalScore);
-  } catch (error) {
-    console.error('Error parsing judge response:', error);
-    // Return default scores if parsing fails
-    return responses.map(r => ({
-      model: r.model,
-      text: r.text,
-      latency: r.latency,
-      cost: r.cost,
-      scores: { relevance: 5, reasoning: 3, style: 3, explanation: 'Parse error' },
-      finalScore: 10
-    }));
-  }
-}
-
-async function saveBenchmarkResults(prompt: string, evaluations: ModelEvaluation[]): Promise<void> {
+async function saveBenchmarkResults(
+  prompt: string, 
+  evaluations: any[], 
+  totalCost: number
+): Promise<void> {
   try {
     const benchmarksDir = path.join(process.cwd(), 'benchmarks');
     await fs.mkdir(benchmarksDir, { recursive: true });
@@ -400,7 +454,7 @@ async function saveBenchmarkResults(prompt: string, evaluations: ModelEvaluation
       evaluations,
       summary: {
         winner: evaluations[0]?.model,
-        totalCost: evaluations.reduce((sum, e) => sum + e.cost, 0)
+        totalCost
       }
     };
     

@@ -32,6 +32,7 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   const [showJudge, setShowJudge] = useState(false);
   const [showUseCase, setShowUseCase] = useState(true);
   const [showConclusions, setShowConclusions] = useState(false);
+  const [evaluations, setEvaluations] = useState<any[]>([]);
   
   const [models, setModels] = useState<ModelData[]>([
     { id: 'grok', name: 'Grok', response: '', cost: 0, tokens: 0, status: 'waiting' },
@@ -120,8 +121,9 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
   const startStreamingResponses = async () => {
     setJudgeComment('Contacting AI models...');
     
-    // Use mock data for testing (set to false to use real API)
-    const USE_MOCK = false;
+    // Use mock data for testing (never on root route)
+    const isRootRoute = window.location.pathname === '/';
+    const USE_MOCK = false && !isRootRoute; // Never use mock on root route
     
     if (USE_MOCK) {
       console.log('Using mock data for demo');
@@ -134,29 +136,23 @@ export default function AnimeStage({ isActive, onLaunchCards }: AnimeStageProps)
     try {
       // Call the real API with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for AI responses
+      // Use longer timeout on root route to ensure live data
+      const isRootRoute = window.location.pathname === '/';
+      const timeoutDuration = isRootRoute ? 150000 : 30000; // 150s for root, 30s for others
+      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
       
       response = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: `Vercel Ship 2025 — $10 Feature Benchmark (Next.js 15)
+          prompt: `Design a Next.js 15 app using Vercel's AI Gateway to compare 3 AI models (Grok, Claude, Gemini) with a $10 budget. Include:
 
-Mission: Spend ≈ USD $10 on a Pro account to benchmark three LLMs through Vercel AI Gateway, rank their answers with a lightweight SWE‑bench–style rubric, execute the best answer in Vercel Sandbox, and capture every metric needed for the LinkedIn article 'I spent $10 on Vercel's latest 2025 Ship features—here's what I found.'
+1. AI Gateway integration to call all 3 models in parallel
+2. A judge component that scores responses on relevance, reasoning, and style
+3. Cost tracking to stay under $10 total
+4. Results dashboard showing model rankings and costs
 
-Stack: Next.js 15.0.0-stable (React 19 RC ready), Vercel Pro team with Active CPU + Fluid enabled, AI Gateway (Open Beta), Sandbox (Public Beta), Queues (Limited Beta).
-
-Implement:
-1. Feature Availability Probe - Gateway ping, Sandbox ping, Queue probe, record in /status.json
-2. Chat Orchestrator Flow - Parallel calls to 3 models, capture latency/tokens/cost, return ranked results
-3. Model Evaluation & Benchmarking - evaluateResponse() scoring: Relevance (0-10), Reasoning (0-5), Style (0-5), Total Score = Relevance × 2 + Reasoning + Style + (-Latency/1000) + (-Cost×10)
-4. UI - Prompt box, results table with scores, sandbox output, cumulative cost tracker
-5. Cost Logging - Queue if available, else localStorage
-6. Screenshots & Data Export - Playwright automation, Functions/Gateway metrics CSV
-
-Key files: /app/api/chat/route.ts (orchestrator), /app/bench/evaluate.ts (judge prompts), /app/components/ResultsTable.tsx
-
-Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox execution, exported metrics.`
+Use Vercel's latest features: AI Gateway (Beta), Active CPU billing, and optionally Sandbox/Queues if available.`
         }),
         signal: controller.signal
       });
@@ -197,8 +193,9 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
         }, (index + 1) * 800);
       });
 
-      // Store winner info for later
-      if (data.evaluations && data.evaluations[0]) {
+      // Store evaluations and winner info
+      if (data.evaluations && data.evaluations.length > 0) {
+        setEvaluations(data.evaluations);
         // Store winner for announceWinner function
         (window as any).__winner = modelMapping[data.evaluations[0].model] || 'claude';
       }
@@ -211,7 +208,7 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         if (error.message.includes('abort')) {
-          setJudgeComment('Request timed out after 30 seconds. The AI models are taking longer than expected.');
+          setJudgeComment('Request timed out. Switching to demo mode...');
         } else {
           setJudgeComment(`API Error: ${error.message}`);
         }
@@ -225,14 +222,17 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
         setJudgeComment('Server configuration error. Please check API settings.');
       }
       
-      // Don't fall back to mock - show error state
-      setModels(prev => prev.map(m => ({
-        ...m,
-        response: 'API connection failed',
-        status: 'complete' as const,
-        cost: 0,
-        tokens: 0
-      })));
+      // Only fall back to mock data on non-root routes
+      const isRootRoute = window.location.pathname === '/';
+      if (!isRootRoute) {
+        console.log('API failed, falling back to mock data for demonstration');
+        setJudgeComment('Using simulated responses for demonstration...');
+        setTimeout(() => startMockStreamingResponses(), 1000);
+      } else {
+        // On root route, show error but don't fall back to mock
+        console.log('API failed on root route - not falling back to mock data');
+        setJudgeComment('Error: Unable to fetch live data. Please check server logs.');
+      }
     }
   };
 
@@ -339,11 +339,70 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
   };
 
   const startMockStreamingResponses = () => {
-    // Original mock implementation as fallback
+    // Set mock evaluations with proper scoring
+    const mockEvaluations = [
+      {
+        model: 'anthropic/claude-4-opus',
+        response: 'Claude response...',
+        scores: {
+          relevance: 9,
+          reasoning: 5,
+          style: 5,
+          accuracy: 8,
+          honesty: 4,
+          totalScore: 48, // (9×2) + (8×2) + 5 + 5 + 4 = 48
+          soundnessScore: 10
+        },
+        latency: 1200,
+        cost: 0.0292
+      },
+      {
+        model: 'google/gemini-2.5-pro',
+        response: 'Gemini response...',
+        scores: {
+          relevance: 8,
+          reasoning: 5,
+          style: 4,
+          accuracy: 7,
+          honesty: 3,
+          totalScore: 42, // (8×2) + (7×2) + 5 + 4 + 3 = 42
+          soundnessScore: 9
+        },
+        latency: 800,
+        cost: 0.0015
+      },
+      {
+        model: 'xai/grok-3',
+        response: 'Grok response...',
+        scores: {
+          relevance: 7,
+          reasoning: 4,
+          style: 4,
+          accuracy: 6,
+          honesty: 2,
+          totalScore: 36, // (7×2) + (6×2) + 4 + 4 + 2 = 36
+          soundnessScore: 8
+        },
+        latency: 600,
+        cost: 0.0037
+      }
+    ];
+    
+    // Sort by total score to determine winner
+    const sortedEvaluations = [...mockEvaluations].sort((a, b) => b.scores.totalScore - a.scores.totalScore);
+    setEvaluations(sortedEvaluations);
+    
+    // Set winner based on highest score (Claude in this case)
+    const winnerModel = sortedEvaluations[0].model;
+    const winnerId = winnerModel.includes('claude') ? 'claude' : 
+                     winnerModel.includes('gemini') ? 'gemini' : 'grok';
+    (window as any).__winner = winnerId;
+    
+    // Start responses quickly for smoother demo
     const delays = {
-      grok: 800,
-      claude: 1200,
-      gemini: 1600
+      grok: 300,    // Grok responds first
+      claude: 800,  // Claude follows shortly after
+      gemini: 1300  // Gemini takes a bit longer
     };
 
     Object.entries(delays).forEach(([modelId, delay]) => {
@@ -364,7 +423,7 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
   const announceWinner = () => {
     const winner = (window as any).__winner || 'claude';
     const winnerName = winner.charAt(0).toUpperCase() + winner.slice(1);
-    setJudgeComment(`🎉 ${winnerName} wins with the best optimization approach!`);
+    setJudgeComment(`🎉 ${winnerName} wins with the best implementation strategy!`);
     
     getAnime().then((anime) => {
       if (!anime) return;
@@ -598,108 +657,178 @@ Success: ≤$10 total cost, 3 models with scores, auto-ranked winner, sandbox ex
   const simulateResponse = (modelId: string) => {
     const mockResponses = {
       grok: { 
-        text: `I'll analyze your React application for performance optimization. The most impactful improvements come from addressing component re-renders, bundle size optimization, and state management efficiency. Here are the key areas to focus on:
+        text: `I'll help you build a comprehensive Vercel Ship 2025 feature benchmark! Here's the implementation plan:
 
-1. **Component Memoization**: Use React.memo() for functional components that receive stable props to prevent unnecessary re-renders.
+## 1. Feature Availability Probe
 
-\`\`\`jsx
-// Before
-const UserCard = ({ user }) => {
-  return <div>{user.name}</div>;
-};
+First, let's create a probe system to check feature availability:
 
-// After
-const UserCard = React.memo(({ user }) => {
-  return <div>{user.name}</div>;
-});
+\`\`\`typescript
+// /app/services/feature-probe.ts
+export async function probeFeatures() {
+  const features = {
+    aiGateway: false,
+    sandbox: false,
+    queues: false,
+    activeCPU: true
+  };
+  
+  // Check AI Gateway
+  try {
+    const res = await fetch('https://api.ai.vercel.com/v1/models');
+    features.aiGateway = res.ok;
+  } catch {}
+  
+  return features;
+}
 \`\`\`
 
-2. **useCallback and useMemo**: Memoize expensive computations and callback functions to maintain referential equality.
+## 2. Chat Orchestrator
 
-3. **Code Splitting**: Implement lazy loading for route-based components to reduce initial bundle size.`,
-        summary: 'Focus on memoization and code splitting',
+Implement parallel model calls with cost tracking:
+
+\`\`\`typescript
+async function orchestrateModels(prompt: string) {
+  const models = ['grok-3', 'claude-4-opus', 'gemini-2.5-pro'];
+  const responses = await Promise.all(
+    models.map(model => callWithTracking(model, prompt))
+  );
+  return rankByScore(responses);
+}
+\`\`\`
+
+## 3. Budget Guardian
+
+Monitor spending with a $10 hard limit using localStorage fallback.`,
+        summary: 'Feature probing and orchestration focus',
         cost: 0.0037, 
         tokens: 245 
       },
       claude: { 
-        text: `I'd be happy to help analyze and optimize your React application! To provide comprehensive optimization suggestions, I'll need to see your code. However, here are the key areas I typically focus on:
+        text: `I'll help you implement the Vercel Ship 2025 feature benchmark with a focus on staying within the $10 budget. Here's a comprehensive approach:
 
-## Performance Optimizations
+## Architecture Overview
 
-1. **Virtual DOM Efficiency**
-   - Minimize unnecessary re-renders using React.memo, useMemo, and useCallback
-   - Implement proper key strategies for lists
-   - Use React DevTools Profiler to identify bottlenecks
+The key is to design a system that maximizes feature testing while minimizing costs through intelligent batching and caching.
 
-2. **Bundle Size Optimization**
-   \`\`\`javascript
-   // Use dynamic imports for code splitting
-   const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
-   
-   // Tree-shake unused exports
-   import { specificFunction } from 'large-library';
-   \`\`\`
+### 1. Feature Availability Detection
 
-3. **State Management**
-   - Colocate state close to where it's used
-   - Consider using useReducer for complex state logic
-   - Implement proper data normalization
+\`\`\`typescript
+// /app/api/status/route.ts
+export async function GET() {
+  const status = {
+    timestamp: new Date().toISOString(),
+    features: {
+      aiGateway: { available: false, error: null },
+      sandbox: { available: false, error: null },
+      queues: { available: false, error: null }
+    }
+  };
+  
+  // Probe each feature with minimal cost
+  try {
+    await checkAIGateway();
+    status.features.aiGateway.available = true;
+  } catch (e) {
+    status.features.aiGateway.error = e.message;
+  }
+  
+  return NextResponse.json(status);
+}
+\`\`\`
 
-## Code Quality Improvements
+### 2. Cost-Aware Orchestration
 
-- Extract custom hooks for reusable logic
-- Implement proper TypeScript types
-- Add comprehensive error boundaries
-- Use ESLint and Prettier for consistency`,
-        summary: 'Comprehensive optimization strategy', 
+Implement a smart orchestrator that tracks costs in real-time:
+
+\`\`\`typescript
+class BudgetManager {
+  private spent = 0;
+  private readonly limit = 10.00;
+  
+  canAfford(estimatedCost: number): boolean {
+    return this.spent + estimatedCost <= this.limit;
+  }
+  
+  async executeWithBudget<T>(
+    operation: () => Promise<T>,
+    estimatedCost: number
+  ): Promise<T> {
+    if (!this.canAfford(estimatedCost)) {
+      throw new Error('Budget exceeded');
+    }
+    const result = await operation();
+    this.spent += estimatedCost;
+    return result;
+  }
+}
+\`\`\`
+
+### 3. Evaluation System
+
+Build a lightweight SWE-bench style evaluator that scores responses objectively.`,
+        summary: 'Architecture-first approach with budget awareness', 
         cost: 0.0292, 
         tokens: 389 
       },
       gemini: { 
-        text: `Of course! Let me provide a comprehensive guide for optimizing your React application.
+        text: `Let me design the Vercel Ship 2025 feature benchmark system optimized for the $10 budget constraint.
 
-### Performance Analysis Framework
+## Implementation Strategy
 
-First, let's establish metrics for measurement:
+### Phase 1: Feature Discovery
 
-\`\`\`javascript
-// Performance monitoring hook
-function usePerformanceMonitor(componentName) {
-  useEffect(() => {
-    const startTime = performance.now();
-    
-    return () => {
-      const endTime = performance.now();
-      console.log(\`\${componentName} render time: \${endTime - startTime}ms\`);
-    };
+\`\`\`typescript
+// Probe available features with minimal API calls
+const featureMatrix = {
+  'AI Gateway': { endpoint: '/v1/models', cost: 0 },
+  'Sandbox': { endpoint: '/sandbox/ping', cost: 0 },
+  'Queues': { endpoint: '/queues/topics', cost: 0 },
+  'Active CPU': { header: 'x-vercel-function-trace', cost: 0 }
+};
+
+async function discoverFeatures() {
+  return Object.entries(featureMatrix).map(async ([name, config]) => {
+    try {
+      const available = await probeFeature(config);
+      return { name, available, config };
+    } catch {
+      return { name, available: false, reason: 'Not accessible' };
+    }
   });
 }
 \`\`\`
 
-### Key Optimization Strategies
+### Phase 2: Multi-Model Benchmark
 
-1. **React.memo with Custom Comparison**
-   \`\`\`jsx
-   const ExpensiveComponent = React.memo(
-     ({ data, userId }) => {
-       // Component logic
-     },
-     (prevProps, nextProps) => {
-       return prevProps.userId === nextProps.userId &&
-              prevProps.data.id === nextProps.data.id;
-     }
-   );
-   \`\`\`
+Design a cost-efficient benchmarking system:
 
-2. **Virtualization for Large Lists**
-   - Use react-window or react-virtualized
-   - Implement infinite scrolling
-   - Lazy load images and content
+\`\`\`typescript
+interface BenchmarkConfig {
+  models: ModelConfig[];
+  maxCost: number;
+  evaluationCriteria: EvalCriteria;
+}
 
-3. **Optimize Context Usage**
-   - Split contexts by update frequency
-   - Use multiple small contexts instead of one large one`,
-        summary: 'Performance monitoring and virtualization',
+const config: BenchmarkConfig = {
+  models: [
+    { id: 'grok-3', costPer1k: 0.02 },
+    { id: 'claude-4-opus', costPer1k: 0.09 },
+    { id: 'gemini-2.5-pro', costPer1k: 0.005 }
+  ],
+  maxCost: 10.00,
+  evaluationCriteria: {
+    relevance: { weight: 2, max: 10 },
+    reasoning: { weight: 1, max: 5 },
+    style: { weight: 1, max: 5 }
+  }
+};
+\`\`\`
+
+### Phase 3: Results Dashboard
+
+Create a real-time dashboard showing model performance vs cost efficiency.`,
+        summary: 'Phased approach with feature discovery',
         cost: 0.0039, 
         tokens: 312 
       }
@@ -708,7 +837,7 @@ function usePerformanceMonitor(componentName) {
     const response = mockResponses[modelId as keyof typeof mockResponses];
     
     // Update judge comment
-    setJudgeComment(`${modelId} is presenting: ${response.summary}`);
+    setJudgeComment(`${modelId.charAt(0).toUpperCase() + modelId.slice(1)} is presenting: ${response.summary}`);
     
     // First animate the response area to show it's active
     getAnime().then((anime) => {
@@ -835,6 +964,7 @@ function usePerformanceMonitor(componentName) {
           className="judge-panel"
           comment={judgeComment}
           visible={showJudge}
+          evaluations={evaluations}
         />
         
         {/* Use case panel */}

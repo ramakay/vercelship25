@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import StreamingAnimeStage from './components/StreamingAnimeStage';
+import AnimeStage from './showdown-anime/components/StreamingAnimeStage';
 
 export default function ShowdownAnimePage() {
   const [isShowActive, setIsShowActive] = useState(false);
@@ -62,7 +62,7 @@ export default function ShowdownAnimePage() {
       )}
 
       {/* Main stage */}
-      <StreamingAnimeStage 
+      <AnimeStage 
         isActive={isShowActive} 
         onLaunchCards={() => setIsShowActive(true)}
       />

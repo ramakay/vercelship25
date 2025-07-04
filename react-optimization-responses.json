@@ -1,0 +1,111 @@
+{
+  "responses": [
+    {
+      "provider": "xai",
+      "model": "xai/grok-3",
+      "text": "Error: xai/grok-3 timed out after 25 seconds",
+      "latency": 25003,
+      "promptTokens": 0,
+      "completionTokens": 0,
+      "cost": 0,
+      "error": "xai/grok-3 timed out after 25 seconds"
+    },
+    {
+      "provider": "anthropic",
+      "model": "anthropic/claude-4-opus",
+      "text": "Error: anthropic/claude-4-opus timed out after 25 seconds",
+      "latency": 25004,
+      "promptTokens": 0,
+      "completionTokens": 0,
+      "cost": 0,
+      "error": "anthropic/claude-4-opus timed out after 25 seconds"
+    },
+    {
+      "provider": "google",
+      "model": "google/gemini-2.5-pro",
+      "text": "Error: google/gemini-2.5-pro timed out after 25 seconds",
+      "latency": 25005,
+      "promptTokens": 0,
+      "completionTokens": 0,
+      "cost": 0,
+      "error": "google/gemini-2.5-pro timed out after 25 seconds"
+    }
+  ],
+  "evaluations": [
+    {
+      "model": "anthropic/claude-4-opus",
+      "response": "Error: anthropic/claude-4-opus timed out after 25 seconds",
+      "scores": {
+        "relevance": 9,
+        "reasoning": 5,
+        "style": 5,
+        "accuracy": 8,
+        "honesty": 4,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 48,
+        "soundnessScore": 10
+      },
+      "latency": 25004,
+      "cost": 0,
+      "finalScore": 22.996
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "response": "Error: google/gemini-2.5-pro timed out after 25 seconds",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 5,
+        "style": 4,
+        "accuracy": 7,
+        "honesty": 3,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 42,
+        "soundnessScore": 9
+      },
+      "latency": 25005,
+      "cost": 0,
+      "finalScore": 16.995
+    },
+    {
+      "model": "xai/grok-3",
+      "response": "Error: xai/grok-3 timed out after 25 seconds",
+      "scores": {
+        "relevance": 7,
+        "reasoning": 4,
+        "style": 4,
+        "accuracy": 6,
+        "honesty": 2,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 36,
+        "soundnessScore": 8
+      },
+      "latency": 25003,
+      "cost": 0,
+      "finalScore": 10.997
+    }
+  ],
+  "summary": {
+    "totalCost": 0,
+    "totalLatency": 25006,
+    "totalPromptTokens": 0,
+    "totalCompletionTokens": 0,
+    "timestamp": "2025-07-04T00:44:11.957Z",
+    "winner": {
+      "model": "anthropic/claude-4-opus",
+      "response": "Error: anthropic/claude-4-opus timed out after 25 seconds",
+      "scores": {
+        "relevance": 9,
+        "reasoning": 5,
+        "style": 5,
+        "accuracy": 8,
+        "honesty": 4,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 48,
+        "soundnessScore": 10
+      },
+      "latency": 25004,
+      "cost": 0,
+      "finalScore": 22.996
+    }
+  }
+}

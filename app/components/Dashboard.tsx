@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { ModelResponse } from '@/app/services/ai-gateway';
-import { costLogger } from '@/app/services/cost-logger';
 import { isExecutableCode, extractCode, executeSandbox, formatSandboxOutput } from '@/app/services/sandbox-executor';
 import { EvaluationResult } from '@/app/bench/evaluate';
 import CostAccumulator from './CostAccumulator';
@@ -19,17 +18,11 @@ export default function Dashboard({ initialPrompt = '' }: DashboardProps) {
   const [loading, setLoading] = useState(false);
   const [responses, setResponses] = useState<ModelResponse[]>([]);
   const [evaluations, setEvaluations] = useState<EvaluationResult[]>([]);
-  const [totalCost, setTotalCost] = useState(0);
+  const [sessionCost, setSessionCost] = useState(0);
   const [activeCpuData, setActiveCpuData] = useState<Array<{ time: number; cpu: number; wall: number }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [sandboxOutput, setSandboxOutput] = useState<string | null>(null);
   const [sandboxLoading, setSandboxLoading] = useState(false);
-
-  // Load existing cost from localStorage on mount
-  useEffect(() => {
-    const existingCost = costLogger.getTotalCost();
-    setTotalCost(existingCost);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,21 +51,9 @@ export default function Dashboard({ initialPrompt = '' }: DashboardProps) {
       setResponses(data.responses);
       setEvaluations(data.evaluations || []);
       
-      // Log each response to cost logger
-      for (const response of data.responses) {
-        await costLogger.log({
-          provider: response.provider,
-          model: response.model,
-          promptTokens: response.promptTokens,
-          completionTokens: response.completionTokens,
-          cost: response.cost,
-          prompt: prompt.substring(0, 100), // Store first 100 chars of prompt
-        });
-      }
-      
-      // Update total cost
-      const newTotalCost = costLogger.getTotalCost();
-      setTotalCost(newTotalCost);
+      // Calculate session cost from all responses
+      const totalSessionCost = data.responses.reduce((sum: number, r: ModelResponse) => sum + r.cost, 0);
+      setSessionCost(totalSessionCost);
       
       // Add CPU data point (simulated for now)
       const wallTime = Date.now() - startTime;
@@ -228,7 +209,7 @@ export default function Dashboard({ initialPrompt = '' }: DashboardProps) {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <CostAccumulator currentCost={totalCost} maxBudget={10} />
+          <CostAccumulator sessionCost={sessionCost} isStreaming={loading} />
           {activeCpuData.length > 0 && (
             <SparklineChart data={activeCpuData} />
           )}

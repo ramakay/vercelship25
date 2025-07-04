@@ -39,9 +39,9 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
   }, [isModalOpen]);
   
   // Extract preview text (first 400 chars for better visibility)
-  const previewText = model.response.length > 400 
+  const previewText = model.response && model.response.length > 400 
     ? model.response.substring(0, 397) + '...' 
-    : model.response;
+    : model.response || '';
   return (
     <div
       id={id}
@@ -160,12 +160,13 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
       {/* Full Response Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-8 overflow-y-auto"
           style={{ zIndex: 1000 }}
           onClick={() => setIsModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
+            className="bg-white rounded-lg max-w-4xl w-full my-8 shadow-2xl"
+            style={{ maxHeight: 'calc(100vh - 4rem)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">

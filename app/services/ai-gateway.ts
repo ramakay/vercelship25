@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import { generateText, streamText } from 'ai';
 import { createGateway } from '@ai-sdk/gateway';
 
 // Create gateway instance with API key
@@ -15,6 +15,7 @@ export interface ModelResponse {
   completionTokens: number;
   cost: number;
   error?: string;
+  stream?: ReadableStream<Uint8Array>;
 }
 
 export interface TokenUsage {
@@ -28,7 +29,8 @@ export interface TokenUsage {
 const PRICING = {
   'xai/grok-3': { input: 0.005, output: 0.015 }, // xAI Grok 3
   'anthropic/claude-4-opus': { input: 0.015, output: 0.075 }, // Claude 4 Opus - most capable
-  'google/gemini-2.5-pro': { input: 0.00125, output: 0.00375 } // Gemini 2.5 Pro
+  'google/gemini-2.5-pro': { input: 0.00125, output: 0.00375 }, // Gemini 2.5 Pro
+  'openai/gpt-4o-mini': { input: 0.00015, output: 0.0006 } // GPT-4o-mini - most cost-effective
 } as const;
 
 export type ModelProvider = keyof typeof PRICING;
@@ -54,13 +56,14 @@ async function callModel(
   try {
     // Add a timeout for individual model calls
     const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error(`${model} timed out after 25 seconds`)), 25000)
+      setTimeout(() => reject(new Error(`${model} timed out after 120 seconds`)), 120000)
     );
     
     const result = await Promise.race([
       generateText({
         model: gateway(model),
         prompt,
+        maxTokens: 1500, // Limit response length to reduce processing time
       }),
       timeoutPromise
     ]);
@@ -97,37 +100,26 @@ async function callModel(
 }
 
 export async function triageWithModels(prompt: string): Promise<ModelResponse[]> {
-  console.log('Starting parallel model calls...');
+  console.log('Starting sequential model calls...');
   console.log('AI_GATEWAY_API_KEY present:', !!process.env.AI_GATEWAY_API_KEY);
   
-  // Call all models in parallel
-  const modelCalls = [
-    callModel('xai/grok-3', prompt),
-    callModel('anthropic/claude-4-opus', prompt),
-    callModel('google/gemini-2.5-pro', prompt)
-  ];
+  const models: ModelProvider[] = ['xai/grok-3', 'anthropic/claude-4-opus', 'google/gemini-2.5-pro'];
+  const results: ModelResponse[] = [];
   
-  const results = await Promise.allSettled(modelCalls);
-  
-  // Process results
-  return results.map((result, index) => {
-    if (result.status === 'fulfilled') {
-      return result.value;
-    } else {
-      const models: ModelProvider[] = ['xai/grok-3', 'anthropic/claude-4-opus', 'google/gemini-2.5-pro'];
-      console.error(`Model ${models[index]} failed:`, result.reason);
-      return {
-        provider: models[index].split('/')[0],
-        model: models[index],
-        text: '',
-        latency: 0,
-        promptTokens: 0,
-        completionTokens: 0,
-        cost: 0,
-        error: result.reason?.message || 'Failed to call model'
-      };
+  // Call models sequentially to avoid rate limiting and resource contention
+  for (const model of models) {
+    console.log(`\nCalling ${model} (${results.length + 1}/${models.length})...`);
+    const response = await callModel(model, prompt);
+    results.push(response);
+    
+    // Add a small delay between calls to be nice to the API
+    if (results.length < models.length) {
+      console.log('Waiting 1 second before next model...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  });
+  }
+  
+  return results;
 }
 
 export function calculateTotalCost(responses: ModelResponse[]): number {

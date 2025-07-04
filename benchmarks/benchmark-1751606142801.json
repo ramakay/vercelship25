@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-07-04T05:15:42.801Z",
+  "prompt": "Design a Next.js 15 app using Vercel's AI Gateway to compare 3 AI models (Grok, Claude, Gemini) with a $10 budget. Include:\n\n1. AI Gateway integration to call all 3 models in parallel\n2. A judge component that scores responses on relevance, reasoning, and style\n3. Cost tracking to stay under $10 total\n4. Results dashboard showing model rankings and costs\n\nUse Vercel's latest features: AI Gateway (Beta), Active CPU billing, and optionally Sandbox/Queues if available.",
+  "evaluations": [
+    {
+      "model": "anthropic/claude-4-opus",
+      "response": "Error: anthropic/claude-4-opus timed out after 25 seconds",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "accuracy": 5,
+        "honesty": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 25,
+        "soundnessScore": 5
+      },
+      "latency": 25006,
+      "cost": 0,
+      "finalScore": -0.006000000000000227
+    },
+    {
+      "model": "xai/grok-3",
+      "response": "Error: xai/grok-3 timed out after 25 seconds",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "accuracy": 5,
+        "honesty": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 25,
+        "soundnessScore": 5
+      },
+      "latency": 25007,
+      "cost": 0,
+      "finalScore": -0.0070000000000014495
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "response": "Error: google/gemini-2.5-pro timed out after 25 seconds",
+      "scores": {
+        "relevance": 5,
+        "reasoning": 2.5,
+        "style": 2.5,
+        "accuracy": 5,
+        "honesty": 2.5,
+        "explanation": "Evaluation failed",
+        "totalScore": 25,
+        "soundnessScore": 5
+      },
+      "latency": 25007,
+      "cost": 0,
+      "finalScore": -0.0070000000000014495
+    }
+  ],
+  "summary": {
+    "winner": "anthropic/claude-4-opus",
+    "totalCost": 0,
+    "totalLatency": 25009
+  }
+}

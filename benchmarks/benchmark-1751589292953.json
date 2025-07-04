@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-07-04T00:34:52.952Z",
+  "prompt": "Test prompt",
+  "evaluations": [
+    {
+      "model": "anthropic/claude-4-opus",
+      "response": "I'm ready to help! What would you like me to assist you with today? Feel free to ask me any questions or let me know what task you'd like to work on.",
+      "scores": {
+        "relevance": 9,
+        "reasoning": 5,
+        "style": 5,
+        "accuracy": 8,
+        "honesty": 4,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 48,
+        "soundnessScore": 10
+      },
+      "latency": 2971,
+      "cost": 0.003135,
+      "finalScore": 44.99764999999999
+    },
+    {
+      "model": "xai/grok-3",
+      "response": "Sure, I'm ready to help! Could you please provide more details or clarify what you'd like me to assist with? Whether it's a question, a topic, or a specific task, I'm all ears (or, well, all text)! 😊",
+      "scores": {
+        "relevance": 7,
+        "reasoning": 4,
+        "style": 4,
+        "accuracy": 6,
+        "honesty": 2,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 36,
+        "soundnessScore": 8
+      },
+      "latency": 2599,
+      "cost": 0.000775,
+      "finalScore": 33.393249999999995
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "response": "Test received! I'm ready to assist.\n\nHow can I help you today? You can ask me to:\n\n*   Answer a question\n*   Write a story or poem\n*   Summarize a text\n*   Translate a phrase\n*   Help you brainstorm ideas\n*   Write some code\n\n...or anything else you have in mind",
+      "scores": {
+        "relevance": 8,
+        "reasoning": 5,
+        "style": 4,
+        "accuracy": 7,
+        "honesty": 3,
+        "explanation": "Evaluation temporarily disabled - using mock scores",
+        "totalScore": 42,
+        "soundnessScore": 9
+      },
+      "latency": 14508,
+      "cost": 0.00027624999999999997,
+      "finalScore": 27.4892375
+    }
+  ],
+  "summary": {
+    "winner": "anthropic/claude-4-opus",
+    "totalCost": 0.00418625,
+    "totalLatency": 14511
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-07-04T05:21:34.132Z",
+  "probes": [
+    {
+      "feature": "AI Gateway",
+      "endpoint": "https://api.ai.vercel.com/v1/models",
+      "status": "error",
+      "response": "request to https://api.ai.vercel.com/v1/models failed, reason: Client network socket disconnected before secure TLS connection was established",
+      "timestamp": "2025-07-04T05:21:33.325Z"
+    },
+    {
+      "feature": "Sandbox",
+      "command": "npx sandbox ping",
+      "status": "error",
+      "response": "Command failed: npx sandbox ping\nnpm error could not determine executable to run\nnpm error A complete log of this run can be found in: /Users/ramakrishnanannaswamy/.npm/_logs/2025-07-04T05_21_33_378Z-debug-0.log\n",
+      "timestamp": "2025-07-04T05:21:33.926Z"
+    },
+    {
+      "feature": "Queues",
+      "command": "vercel queue topics ls",
+      "status": "error",
+      "response": "Command failed: vercel queue topics ls\nVercel CLI 44.2.8\nError: Can't deploy more than one path.\n",
+      "timestamp": "2025-07-04T05:21:34.132Z"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "available": 0,
+    "unavailable": 0,
+    "errors": 3
+  }
+}

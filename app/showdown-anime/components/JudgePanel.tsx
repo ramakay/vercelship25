@@ -1,5 +1,7 @@
 'use client';
 
+import AccuracyCard from './AccuracyCard';
+
 interface ModelData {
   id: string;
   name: string;
@@ -9,29 +11,54 @@ interface ModelData {
   status: string;
 }
 
+interface EvaluationData {
+  model: string;
+  scores: {
+    relevance: number;
+    reasoning: number;
+    style: number;
+    accuracy: number;
+    honesty: number;
+    totalScore: number;
+    soundnessScore: number;
+  };
+}
+
 interface JudgePanelProps {
   totalCost: number;
   models: ModelData[];
   className?: string;
   comment?: string;
   visible?: boolean;
+  evaluations?: EvaluationData[];
 }
 
-export default function JudgePanel({ totalCost, models, className, comment, visible }: JudgePanelProps) {
-  // Mock rankings
-  const rankings = [
-    { model: 'Claude', score: 18 },
-    { model: 'Gemini', score: 17 },
-    { model: 'Grok', score: 16 }
-  ];
+export default function JudgePanel({ totalCost, models, className, comment, visible, evaluations }: JudgePanelProps) {
+  // Use real evaluations if available, otherwise mock
+  const rankings = evaluations ? 
+    evaluations
+      .map(e => ({
+        model: e.model.includes('claude') ? 'Claude' : 
+               e.model.includes('gemini') ? 'Gemini' : 'Grok',
+        score: Math.round(e.totalScore || 0),  // Use totalScore directly, not scores.totalScore
+        accuracy: e.scores?.accuracy || 0,
+        soundness: ((e.scores?.reasoning || 0) + (e.scores?.style || 0)),  // Combine reasoning + style for soundness
+        honesty: e.scores?.honesty || 0
+      }))
+      .sort((a, b) => b.score - a.score)
+    : [
+      { model: 'Claude', score: 35, accuracy: 8, soundness: 10, honesty: 4 },
+      { model: 'Gemini', score: 31, accuracy: 7, soundness: 9, honesty: 3 },
+      { model: 'Grok', score: 27, accuracy: 6, soundness: 8, honesty: 2 }
+    ];
 
   return (
     <div 
-      className={`fixed top-8 left-1/2 transform -translate-x-1/2 ${className}`}
+      className={`fixed top-4 left-1/2 transform -translate-x-1/2 ${className}`}
       style={{ 
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.5s ease-out',
-        zIndex: 30,
+        zIndex: 40,
         pointerEvents: visible ? 'auto' : 'none',
         width: '90%',
         maxWidth: '1200px'
@@ -98,7 +125,7 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
                       {index + 1}.
                     </span>
                     <span className="text-lg font-medium">{item.model}</span>
-                    <span className="text-lg text-gray-600">({item.score}/20)</span>
+                    <span className="text-lg text-gray-600">({item.score}/55)</span>
                   </div>
                 ))}
               </div>
@@ -116,6 +143,25 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
             </div>
           </div>
         </div>
+        
+        {/* Accuracy vs Soundness Cards - shown when models are complete */}
+        {models.every(m => m.status === 'complete' || m.status === 'judged') && rankings.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <h4 className="text-sm uppercase tracking-wider text-gray-500 mb-3">Accuracy vs Soundness Analysis</h4>
+            <div className="flex gap-4 justify-center">
+              {rankings.map((item) => (
+                <AccuracyCard
+                  key={item.model}
+                  model={item.model}
+                  accuracy={item.accuracy}
+                  soundness={item.soundness}
+                  honesty={item.honesty}
+                  visible={true}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
