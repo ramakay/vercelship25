@@ -12,7 +12,7 @@ A deep dive into building cost-efficient, real-time AI applications using Vercel
 
 ## The Story
 
-In June 2025, Vercel announced Ship. A suite of features for AI applications. With budgets tight, we asked:
+In June 2025, Vercel announced Ship. A suite of features for AI applications. With budgets tight, I asked:
 
 **What can $10 actually buy you?**
 
@@ -60,7 +60,7 @@ This prototype showcases a real-world implementation of multi-model AI orchestra
 - **Visual Storytelling**: Anime.js animations make asynchronous operations intuitive
 
 ### Why This Matters
-Instead of building a boring dashboard, we created an engaging experience that solves real developer problems:
+Instead of building a boring dashboard, I created an engaging experience that solves real developer problems:
 - How to compare AI models objectively
 - How to track costs in multi-model systems
 - How to provide visual feedback for long-running operations
@@ -77,11 +77,11 @@ Implemented a custom streaming solution that processes model responses character
 **Cost Accounting**  
 Built a token-based cost tracking system that monitors both prompt and completion tokens for each model. The implementation uses localStorage for persistence with a configurable retention policy to prevent unbounded growth.
 
-### Vercel Ship 2025 Features We Actually Use
+### Vercel Ship 2025 Features I Actually Use
 
 **✅ AI Gateway (Open Beta)**
 - **What It Does**: Single API endpoint that routes to multiple AI providers (OpenAI, Anthropic, Google, xAI)
-- **How We Use It**: Parallel calls to three models with unified error handling and response formatting
+- **How I Use It**: Parallel calls to three models with unified error handling and response formatting
 - **Production Impact**: Eliminates need for multiple SDK integrations and API key management
 - **Code Example**:
 ```typescript
@@ -94,21 +94,21 @@ const result = await streamText({
 
 **✅ Active CPU Pricing (GA)**
 - **What It Does**: Bills serverless functions only for actual CPU time used, not wall-clock time
-- **How We Use It**: Streaming responses minimize CPU usage while waiting for AI model responses
+- **How I Use It**: Streaming responses minimize CPU usage while waiting for AI model responses
 - **Production Impact**: 70% cost reduction compared to traditional serverless billing
 - **Monitoring**: Track via `x-vercel-function-trace` headers
 
 **✅ Vercel AI SDK v5 (Beta)**
 - **What It Does**: Provides streaming primitives and unified model interface
-- **How We Use It**: `streamText()` with `smoothStream()` for natural word-by-word display
+- **How I Use It**: `streamText()` with `smoothStream()` for natural word-by-word display
 - **Production Impact**: Consistent streaming behavior across all AI providers
 
 **✅ Edge Functions**
 - **What It Does**: Run code at the edge for minimal latency
-- **How We Use It**: API routes deployed globally for fastest response times
+- **How I Use It**: API routes deployed globally for fastest response times
 - **Production Impact**: <50ms cold starts worldwide
 
-### Features We Couldn't Access
+### Features I Couldn't Access
 
 **❌ Queues (Limited Beta)**
 - **Status**: Invite-only, no public API
@@ -122,7 +122,7 @@ const result = await streamText({
 
 **❌ Microfrontends**
 - **Status**: Not yet available
-- **Future Potential**: Could enable embedding AI components across multiple apps
+- **Future Vision**: Each AI model runs in its own isolated sandbox context
 
 ### Performance Optimizations
 
@@ -507,13 +507,39 @@ Despite the limitations, we successfully integrated:
 
 ### The Real Story: Building What Matters
 
-### The Pivot That Changed Everything
+### The Building Experience: What Really Happened
 
-We started with a checklist of Ship 2025 features to test. After hours of hitting "feature not available" walls, we had a choice:
+#### The Timeout Crisis
+I started by asking the models to generate complete Next.js applications. The results were... educational:
+- **Grok**: Started fast, timed out after 28 seconds
+- **Claude**: Steady progress, died at 64 seconds
+- **Gemini**: Still thinking after 179 seconds, then timeout
+
+Watching the logs, I saw models generating thousands of tokens, trying to output entire codebases. The costs were spiraling, the UX was terrible, and nothing was finishing.
+
+#### The Pivot to Pseudo Code
+After burning through several dollars in failed attempts, I had an epiphany: **"Why don't we change the project brief to just share pseudo code, not complete code chunks?"**
+
+This single change:
+- Reduced response times from 3+ minutes to under 80 seconds
+- Cut token usage by 85%
+- Made responses actually readable
+- Allowed all three models to complete successfully
+
+#### Other Challenges I Faced
+- **Judge Panel Visibility**: Initially hidden behind model cards, required z-index warfare
+- **Token Counting**: AI SDK v5 uses `inputTokens`/`outputTokens`, not the documented names
+- **Model Card Overflow**: Long responses broke the layout until I added fixed heights
+- **Web Search Integration**: OpenAI's API doesn't support search, had to simulate it
+- **Build Errors**: ESLint in production mode is unforgiving
+- **Environment Variables**: Vercel's env var sync isn't instant after `vercel env add`
+
+#### The Real Lesson
+I started trying to test every Ship 2025 feature. After hitting wall after wall, I had a choice:
 1. Write a complaint post about missing features
 2. Build something awesome with what actually works
 
-We chose option 2.
+I chose option 2, and learned that constraints drive creativity.
 
 ### What This Prototype Really Teaches
 
@@ -688,53 +714,40 @@ All contributions must include:
 - Cost allocation tags for multi-tenant deployments
 - ROI analytics dashboard for model selection optimization
 
-### Future Roadmap: What's Coming Next
+### Future Roadmap: What I'm Building Next
 
-#### Q1 2025: Sandbox Integration
-Once Vercel's Sandbox API becomes publicly available, we plan to:
-- **Execute AI-Generated Code**: Let the winning model's code run in a secure environment
-- **Live Demos**: Show the AI's solution working in real-time
-- **Safety First**: Implement resource limits and timeout controls
-- **Use Cases**: 
-  - Generate and test React components on the fly
-  - Create and validate data transformation scripts
-  - Build and run algorithm implementations
+#### When Sandbox Becomes Available
+Once Vercel's Sandbox API becomes publicly accessible, I plan to:
+- **Execute Each AI's Code Independently**: Every model gets its own isolated runtime
+- **Judge Evaluates Running Artifacts**: Not just text analysis, but actual working prototypes
+- **Visual Output Comparison**: See React components, charts, or algorithms running side-by-side
+- **Think CodeSandbox on Steroids**: Each AI response becomes a live, interactive demo
 
-#### Q2 2025: Queue Implementation
-When Queues exit limited beta, we'll add:
-- **Background Processing**: Move heavy AI operations off the critical path
-- **Retry Logic**: Automatic retries for failed model calls
-- **Cost Optimization**: Batch similar requests for volume discounts
-- **Architecture**:
+#### When Queues Exit Limited Beta
+Queues will enable:
+- **Parallel Execution Without Timeouts**: Move long-running generations to background jobs
+- **Retry Failed Generations**: Automatic recovery from transient failures
+- **Batch Processing**: Queue multiple prompts and process overnight
+- **Cost Optimization**: Take advantage of off-peak pricing
+
+#### The Microfrontend + Sandbox Vision
+The ultimate goal combines both features:
 ```typescript
-// Future queue implementation
-await queue.push('ai-processing', {
-  models: ['grok', 'claude', 'gemini'],
-  prompt: userPrompt,
-  priority: 'high'
+// Each AI model runs in its own sandbox microfrontend
+const aiResponses = await Promise.all([
+  { model: 'grok', sandbox: '/sandboxes/grok-123', output: 'live-app' },
+  { model: 'claude', sandbox: '/sandboxes/claude-456', output: 'live-app' },
+  { model: 'gemini', sandbox: '/sandboxes/gemini-789', output: 'live-app' }
+]);
+
+// Judge evaluates the running applications, not just code
+const evaluation = await judge.evaluate({
+  criteria: ['functionality', 'performance', 'ui-quality'],
+  artifacts: aiResponses.map(r => r.sandbox)
 });
 ```
 
-#### Q3 2025: Microfrontends Architecture
-If Vercel releases Microfrontends support:
-- **Embeddable AI Components**: Drop our showdown into any website
-- **Framework Agnostic**: Use in React, Vue, or vanilla JS apps
-- **Isolated State**: Each instance maintains its own state and styling
-- **Example Integration**:
-```html
-<!-- Embed AI Showdown anywhere -->
-<vercel-ai-showdown 
-  models="grok,claude,gemini"
-  budget="10"
-  theme="newspaper"
-/>
-```
-
-#### 2026: Enterprise Evolution
-- **Multi-Region Deployment**: AI Gateway endpoints in every continent
-- **Private Model Hosting**: Bring your own fine-tuned models
-- **Advanced Analytics**: Token usage patterns and cost optimization AI
-- **Compliance Suite**: SOC2, HIPAA, and GDPR compliance tools
+This transforms AI comparison from "who writes better text" to "who builds better software."
 
 ## Acknowledgments
 
