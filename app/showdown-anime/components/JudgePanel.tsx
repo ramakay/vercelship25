@@ -13,14 +13,15 @@ interface ModelData {
 
 interface EvaluationData {
   model: string;
+  totalScore?: number;
   scores: {
     relevance: number;
     reasoning: number;
     style: number;
     accuracy: number;
     honesty: number;
-    totalScore: number;
-    soundnessScore: number;
+    totalScore?: number;
+    soundnessScore?: number;
   };
 }
 

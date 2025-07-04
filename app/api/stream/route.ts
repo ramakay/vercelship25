@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
               model: gateway(model),
               prompt,
               temperature: 0.7,
-              maxTokens: 500,  // Reduced from 1000 to keep responses concise
               experimental_transform: smoothStream({
                 delayInMs: 20,
                 chunking: 'word'
@@ -148,8 +147,8 @@ export async function POST(request: NextRequest) {
 
             // Get usage data
             const usage = await result.usage;
-            promptTokens = usage.promptTokens || 0;
-            completionTokens = usage.completionTokens || 0;
+            promptTokens = usage.inputTokens || 0;
+            completionTokens = usage.outputTokens || 0;
             
             const totalModelTime = Date.now() - modelStartTime;
             const cost = calculateCost(model, promptTokens, completionTokens);
@@ -313,8 +312,8 @@ Return JSON only:
             const judgeUsage = await judgeResult.usage;
             const judgeCost = calculateCost(
               'openai/gpt-4o-mini',
-              judgeUsage.promptTokens || 0,
-              judgeUsage.completionTokens || 0
+              judgeUsage.inputTokens || 0,
+              judgeUsage.outputTokens || 0
             );
             totalCost += judgeCost;
             

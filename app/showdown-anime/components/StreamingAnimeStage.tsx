@@ -375,7 +375,7 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
                 model={model}
                 isActive={activeModel === model.id}
               />
-              <PaperPlane id={`paper-plane-${model.id}`} />
+              <PaperPlane id={`paper-plane-${model.id}`} modelId={model.id} />
             </div>
           ))}
         </div>

@@ -62,8 +62,7 @@ async function callModel(
     const result = await Promise.race([
       generateText({
         model: gateway(model),
-        prompt,
-        maxTokens: 1500, // Limit response length to reduce processing time
+        prompt
       }),
       timeoutPromise
     ]);
@@ -127,10 +126,11 @@ export function calculateTotalCost(responses: ModelResponse[]): number {
 }
 
 export function getModelDisplayName(model: ModelProvider): string {
-  const displayNames = {
+  const displayNames: Record<string, string> = {
     'xai/grok-3': 'Grok 3',
     'anthropic/claude-4-opus': 'Claude 4 Opus',
-    'google/gemini-2.5-pro': 'Gemini 2.5 Pro'
+    'google/gemini-2.5-pro': 'Gemini 2.5 Pro',
+    'openai/gpt-4o-mini': 'GPT-4o Mini'
   };
   return displayNames[model] || model;
 }
