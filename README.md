@@ -1,5 +1,7 @@
 # Vercel Ship 2025: The $10 AI Gateway Experiment
 
+> Last deployment: 2025-07-04 - Fixed model cards with monospace font and markdown support
+
 A deep dive into building cost-efficient, real-time AI applications using Vercel's Ship 2025 features. This project explores practical patterns for multi-model orchestration, token economics, and performance optimization in production AI systems.
 
 [Live Demo](https://vercelship25.vercel.app) | [Technical Article](https://linkedin.com/in/rama1)
