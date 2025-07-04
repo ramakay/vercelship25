@@ -86,7 +86,7 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
             
             {/* Live commentary */}
             {comment && (
-              <div className="relative inline-block mt-2">
+              <div className="relative inline-block mt-2" style={{ maxWidth: '600px' }}>
                 {/* Animated gradient border */}
                 <div 
                   className="absolute -inset-0.5 rounded-lg opacity-75"
@@ -96,9 +96,12 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
                     animation: 'gradient-shift 3s ease infinite'
                   }}
                 />
-                <div className="relative bg-white rounded-lg px-4 py-2">
-                  <p className="font-mono text-lg font-medium text-gray-800" style={{ 
-                    letterSpacing: '0.02em'
+                <div className="relative bg-white rounded-lg px-4 py-3">
+                  <p className="font-mono text-base font-medium text-gray-800" style={{ 
+                    letterSpacing: '0.02em',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: '1.5'
                   }}>
                     {comment}
                   </p>

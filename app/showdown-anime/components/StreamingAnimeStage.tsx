@@ -263,16 +263,26 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
       case 'final-results':
         setEvaluations(event.evaluations || []);
         setTotalCost(event.totalCost || 0);
-        if (event.evaluations && event.evaluations[0]) {
-          const winnerId = modelMapping[event.evaluations[0].model] || 'claude';
+        if (event.evaluations && event.evaluations.length > 0) {
+          // Sort by totalScore to find the actual winner
+          const sortedByScore = [...event.evaluations].sort((a, b) => b.totalScore - a.totalScore);
+          const winner = sortedByScore[0];
+          const winnerId = modelMapping[winner.model] || winner.model.split('/')[1];
+          
           (window as any).__winner = winnerId;
           console.log('=== COMPETITION COMPLETE ===', {
             winner: winnerId,
+            winnerScore: winner.totalScore,
             totalCost: event.totalCost,
-            evaluations: event.evaluations
+            evaluations: event.evaluations,
+            searchPerformed: event.searchSources && event.searchSources.length > 0
           });
           setTimeout(() => announceWinner(winnerId), 1000);
         }
+        break;
+
+      case 'judge-comment':
+        setJudgeComment(event.comment);
         break;
 
       case 'judge-error':
@@ -313,7 +323,15 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
 
   const announceWinner = (winnerId: string) => {
     console.log('Announcing winner:', winnerId);
-    setJudgeComment(`The winner is ${winnerId.charAt(0).toUpperCase() + winnerId.slice(1)}!`);
+    const winnerName = winnerId.charAt(0).toUpperCase() + winnerId.slice(1);
+    const winner = evaluations.find(e => e.model.toLowerCase().includes(winnerId.toLowerCase()));
+    
+    if (winner && winner.scores) {
+      const comment = `The winner is ${winnerName}!\n\nScoring: ${winner.totalScore}/55 points\nStrengths: ${winner.scores.explanation || 'Strong technical accuracy and clear architecture'}`;
+      setJudgeComment(comment);
+    } else {
+      setJudgeComment(`The winner is ${winnerName}!`);
+    }
     
     // Show confetti animation
     setShowConfetti(true);
