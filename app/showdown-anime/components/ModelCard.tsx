@@ -38,14 +38,11 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
     };
   }, [isModalOpen]);
   
-  // Extract preview text (first 400 chars for better visibility)
-  const previewText = model.response && model.response.length > 400 
-    ? model.response.substring(0, 397) + '...' 
-    : model.response || '';
+  // No preview needed since we'll show full content with scroll
   return (
     <div
       id={id}
-      className="model-card relative w-[380px] h-[520px] card-shadow opacity-0"
+      className="model-card relative w-[380px] h-[540px] card-shadow opacity-0"
       style={{
         transformStyle: 'preserve-3d',
         transform: 'rotateY(-5deg)',
@@ -95,29 +92,30 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
           >
             <div className="bg-gray-50 rounded-lg h-full" />
           </div>
-          <div className="relative bg-gray-50 rounded-lg p-6 min-h-[280px] h-full flex flex-col">
-            <div className="flex-1 overflow-hidden">
+          <div className="relative bg-gray-50 rounded-lg p-6 h-full flex flex-col" style={{ height: '280px' }}>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ maxHeight: '220px' }}>
               <p 
-                className="response-text text-lg leading-relaxed"
+                className="response-text"
                 style={{ 
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                  color: 'rgba(0,0,0,0.8)',
-                  fontSize: '16px',
+                  fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+                  color: 'rgba(0,0,0,0.85)',
+                  fontSize: '13px',
                   display: model.response ? 'block' : 'none',
                   wordBreak: 'break-word',
-                  lineHeight: '1.6'
+                  lineHeight: '1.5',
+                  letterSpacing: '-0.02em'
                 }}
               >
-                {previewText}
+                {model.response}
               </p>
             </div>
-            {model.response && (
+            {model.response && model.response.length > 0 && (
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="mt-4 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                className="mt-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                style={{ fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}
               >
-                <Maximize2 size={16} />
+                <Maximize2 size={14} />
                 View Full Response
               </button>
             )}
@@ -160,17 +158,17 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
       {/* Full Response Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-8 overflow-y-auto"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto"
           style={{ zIndex: 1000 }}
           onClick={() => setIsModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-lg max-w-4xl w-full my-8 shadow-2xl"
-            style={{ maxHeight: 'calc(100vh - 4rem)' }}
+            className="bg-white rounded-lg w-full my-4 shadow-2xl"
+            style={{ maxWidth: '1200px', maxHeight: 'calc(100vh - 2rem)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-2xl font-light" style={{ fontFamily: 'Crimson Text, Georgia, serif' }}>
+              <h3 className="text-2xl font-light">
                 {model.name} Response
               </h3>
               <button
@@ -183,7 +181,7 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
                 </svg>
               </button>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
               <FormattedResponse text={model.response} />
             </div>
           </div>
@@ -193,28 +191,51 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
   );
 }
 
-// Component to format response with code blocks
+// Component to format response with markdown and code blocks
 function FormattedResponse({ text }: { text: string }) {
   // Split text by code blocks
   const parts = text.split(/```(\w*)\n([\s\S]*?)```/g);
   
+  const formatMarkdown = (content: string) => {
+    // Process markdown formatting
+    let formatted = content
+      // Headers
+      .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-semibold mt-8 mb-4">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
+      // Bold
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+      // Lists
+      .replace(/^- (.+)$/gm, '<li class="ml-4">• $1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4"><span class="font-mono text-sm">$&</span></li>')
+      // Line breaks
+      .replace(/\n\n/g, '</p><p class="mb-4">')
+      .replace(/\n/g, '<br/>');
+    
+    return `<p class="mb-4">${formatted}</p>`;
+  };
+  
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {parts.map((part, index) => {
         // Even indices are text, odd indices are language, even+1 indices are code
         if (index % 3 === 0) {
-          // Regular text
-          return part ? (
-            <div key={index} className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-              {part}
-            </div>
+          // Regular text with markdown formatting
+          return part.trim() ? (
+            <div 
+              key={index} 
+              className="text-gray-700 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: formatMarkdown(part) }}
+            />
           ) : null;
         } else if (index % 3 === 2) {
           // Code block
           const language = parts[index - 1] || 'plaintext';
+          const isMermaid = language.toLowerCase() === 'mermaid';
+          
           return (
-            <div key={index} className="relative group">
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div key={index} className="relative group my-6">
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <button
                   onClick={() => navigator.clipboard.writeText(part)}
                   className="px-3 py-1 text-xs bg-gray-800 text-white rounded hover:bg-gray-700"
@@ -222,9 +243,18 @@ function FormattedResponse({ text }: { text: string }) {
                   Copy
                 </button>
               </div>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-                <code className={`language-${language}`}>{part}</code>
-              </pre>
+              {isMermaid ? (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                  <div className="text-xs text-gray-500 mb-2">Mermaid Diagram</div>
+                  <pre className="text-sm text-gray-700 overflow-x-auto">
+                    <code>{part}</code>
+                  </pre>
+                </div>
+              ) : (
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                  <code className={`language-${language} text-sm font-mono`}>{part}</code>
+                </pre>
+              )}
             </div>
           );
         }
