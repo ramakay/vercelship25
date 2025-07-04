@@ -50,3 +50,45 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
 }
+
+/* Mermaid diagram styling */
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-container .node rect,
+.mermaid-container .node circle,
+.mermaid-container .node ellipse,
+.mermaid-container .node polygon {
+  fill: #fef3c7 !important;
+  stroke: #f59e0b !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-container .node text {
+  fill: #000 !important;
+}
+
+.mermaid-container .edgePath .path {
+  stroke: #5a5a5a !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-container .edgeLabel {
+  background-color: white !important;
+  padding: 2px 4px !important;
+}
+
+/* Animation for gradient backgrounds */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
