@@ -1,4 +1,4 @@
-import { streamText, smoothStream } from 'ai';
+import { streamText, smoothStream, generateText } from 'ai';
 import { createGateway } from '@ai-sdk/gateway';
 import { openai } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
@@ -286,99 +286,41 @@ export async function POST(request: NextRequest) {
           })}\n\n`));
 
           try {
-            // First, search for current Vercel features information
-            await logger.log('INFO', 'Starting web search for Vercel documentation');
-            const searchStartTime = Date.now();
-            
-            // Send search started notification
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'judge-comment',
-              comment: '🔍 Performing web search...\nSearching site:vercel.com for Ship 2025 features...'
-            })}\n\n`));
-            
-            const searchPrompt = `site:vercel.com Search for official Vercel documentation about:
-- "Ship 2025" announcement and new features
-- "AI Gateway" current status (Beta/Open Beta)
-- "Sandbox" feature and its availability (Public Beta)
-- "Queues" feature and its availability (Limited Beta)  
-- "Active CPU" and "Fluid Compute" (Generally Available)
-- "Rolling Releases" feature status
-Search only official vercel.com documentation pages, blog posts, and announcements.`;
-
-            let searchInfo = '';
-            
-            try {
-              // Perform web search using GPT-4o-mini (judge model)
-              await logger.log('INFO', 'Judge performing web search with GPT-4o-mini');
-              
-              const searchResult = streamText({
-                model: gateway('openai/gpt-4o-mini'),
-                prompt: searchPrompt,
-                temperature: 0.1,
-              });
-              
-              let searchText = '';
-              for await (const textPart of searchResult.textStream) {
-                searchText += textPart;
-              }
-              
-              searchInfo = searchText || `Based on available documentation:
-- Vercel AI Gateway is in Open Beta
-- Supports multiple AI models including Grok, Claude, and Gemini
-- Active CPU billing is Generally Available
-- Sandbox is in Public Beta
-- Queues is in Limited Beta`;
-              
-              await logger.log('INFO', 'Web search completed successfully', {
-                searchLength: searchInfo.length,
-                containsFeatureInfo: searchInfo.includes('AI Gateway') || searchInfo.includes('Ship 2025')
-              });
-              
-            } catch (searchError) {
-              await logger.logError(searchError, 'Web search failed, using fallback');
-              // Fallback to basic info if search fails
-              searchInfo = `Based on available documentation:
-- Vercel AI Gateway is in Open Beta
-- Supports multiple AI models including Grok, Claude, and Gemini
-- Active CPU billing is Generally Available
-- Sandbox is in Public Beta
-- Queues is in Limited Beta`;
-            }
-            
-            const searchDuration = Date.now() - searchStartTime;
-            await logger.logPerformance('Web search', searchDuration, {
-              resultLength: searchInfo.length,
-              usedFallback: !searchInfo.includes('search results') && !searchInfo.includes('found')
-            });
-            
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'judge-comment', 
-              comment: '✅ Web search completed\nFound documentation on AI Gateway, Sandbox, Queues, and Active CPU features\n\nEvaluating model responses against current documentation...'
-            })}\n\n`));
-
-            // Now judge with the search context
-            await logger.log('INFO', 'Starting judge evaluation with search context');
+            // Judge evaluates with web search capability
+            await logger.log('INFO', 'Judge evaluating responses with web search capability');
             const evalStartTime = Date.now();
             
-            const judgePrompt = `Evaluate AI responses for accuracy and hallucinations. Be CONCISE.
+            // Send search notification
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'judge-comment',
+              comment: '🔍 Judge is searching for current Vercel documentation...'
+            })}\n\n`));
+            
+            // Log for visibility
+            console.log('🔍 Judge performing web search for Vercel features...');
+            
+            // Judge prompt that will use web search
+            const judgePrompt = `You are evaluating AI model responses about Vercel Ship 2025 features.
 
-IMPORTANT: Check for hallucinations by comparing responses against the web search results below.
-Any claims about Vercel features NOT mentioned in the search results should be marked as potential hallucinations.
+Use the web search tool to find current information about:
+- Vercel AI Gateway status and features
+- Active CPU and Fluid Compute availability
+- Sandbox feature status
+- Other Ship 2025 features
 
-Web Search Results:
-${searchInfo}
+Then evaluate each model's response for accuracy against your search results.
 
 User asked: "${prompt}"
 
-Responses to evaluate:
-${results.map((r, i) => `${i + 1}. ${r.model}: ${r.text.substring(0, 500)}...`).join('\n\n')}
+Model responses to evaluate:
+${results.map((r, i) => `\n${i + 1}. ${r.model}:\n${r.text.substring(0, 400)}...`).join('\n')}
 
-Score each response:
+After searching, score each response on:
 - relevance (0-10): Does it answer the question?
-- reasoning (0-5): Are claims supported with logic?
-- style (0-5): Is it clear and well-organized?
-- accuracy (0-10): Are all facts correct based on web search? Deduct points for hallucinations.
-- honesty (0-5): Does it acknowledge uncertainty? 1-2 if making claims without evidence.
+- reasoning (0-5): Logical flow and structure?
+- style (0-5): Clear and concise?
+- accuracy (0-10): Factually correct based on your search? Mark hallucinations.
+- honesty (0-5): Acknowledges limitations or outdated info?
 
 Return JSON only:
 {
@@ -390,33 +332,51 @@ Return JSON only:
         "reasoning": 4,
         "style": 4,
         "accuracy": 9,
-        "honesty": 3,
-        "explanation": "Brief explanation noting any hallucinations"
-      }
+        "honesty": 3
+      },
+      "explanation": "Brief explanation noting any hallucinations found"
     }
   ]
 }`;
 
-            const judgeResult = streamText({
-              model: gateway('openai/gpt-4o-mini'),
+            // Use OpenAI responses API with web search
+            const judgeResult = await generateText({
+              model: openai.responses('gpt-4o-mini'),
               prompt: judgePrompt,
+              tools: {
+                web_search_preview: openai.tools.webSearchPreview({}),
+              },
+              toolChoice: { type: 'tool', toolName: 'web_search_preview' },
               temperature: 0.1,
             });
-
-            let judgeText = '';
             
-            // Stream judge response
-            for await (const textPart of judgeResult.textStream) {
-              judgeText += textPart;
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                type: 'judge-delta',
-                textDelta: textPart
-              })}\n\n`));
+            await logger.log('INFO', 'Judge evaluation complete', {
+              steps: judgeResult.steps?.length,
+              toolCalls: judgeResult.steps?.filter(s => s.toolCalls?.length > 0).length
+            });
+            
+            // Log search sources
+            const sources = judgeResult.sources;
+            console.log('Sources found:', sources?.length || 0);
+            if (sources && sources.length > 0) {
+              console.log('Web search sources:');
+              sources.forEach((source: any) => {
+                console.log(`- ${source.title || 'Untitled'}: ${source.url || 'No URL'}`);
+              });
             }
+            
+            // Extract the evaluation from the judge's response
+            const judgeText = judgeResult.text;
+            
+            // Send judge's evaluation to the client
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'judge-delta',
+              textDelta: judgeText
+            })}\n\n`));
 
             // Get judge usage for cost
             const evalDuration = Date.now() - evalStartTime;
-            const judgeUsage = await judgeResult.usage;
+            const judgeUsage = judgeResult.usage;
             const judgeCost = calculateCost(
               'openai/gpt-4o-mini',
               judgeUsage.inputTokens || 0,
@@ -426,10 +386,10 @@ Return JSON only:
             
             const totalJudgeTime = Date.now() - judgeStartTime;
             await logger.log('INFO', 'Judge evaluation completed', {
-              searchTime: `${searchDuration}ms`,
               evaluationTime: `${evalDuration}ms`,
               totalJudgeTime: `${totalJudgeTime}ms`,
-              judgeCost: `$${judgeCost.toFixed(6)}`
+              judgeCost: `$${judgeCost.toFixed(6)}`,
+              sourcesFound: sources?.length || 0
             });
 
             // Parse and send final results
