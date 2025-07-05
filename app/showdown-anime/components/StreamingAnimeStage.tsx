@@ -373,6 +373,16 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
 
   return (
     <div ref={stageRef} className="w-full h-full flex flex-col bg-white">
+      {/* Blur overlay for background elements when not active */}
+      {!isActive && (
+        <>
+          {/* Top section blur */}
+          <div className="absolute top-0 left-0 right-0 h-[140px] bg-white/50 backdrop-blur-sm z-30" />
+          {/* Model cards area blur */}
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-20" style={{ marginTop: '140px' }} />
+        </>
+      )}
+      
       {/* Main content area with top margin to account for Judge Panel */}
       <div className="flex-1 flex items-center justify-center p-8 relative" style={{ marginTop: '140px' }}>
         {/* Use case panel */}
@@ -385,7 +395,8 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
         )}
         
         {/* Model cards */}
-        <div className="model-cards-container flex gap-8 justify-center items-center" style={{ opacity: isActive ? 1 : 0, marginTop: '25vh' }}>
+        <div className={`model-cards-container flex gap-8 justify-center items-center ${!isActive ? 'filter blur-md' : ''}`} 
+             style={{ opacity: isActive ? 1 : 0, marginTop: '25vh' }}>
           {models.map((model, index) => (
             <div key={model.id} className="relative">
               <ModelCard
@@ -412,13 +423,15 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
       </div>
 
       {/* Judge panel - visible unless conclusions are shown */}
-      <JudgePanel 
-        comment={judgeComment}
-        models={models}
-        totalCost={totalCost}
-        evaluations={evaluations}
-        visible={!showConclusions}
-      />
+      <div className={!isActive ? 'filter blur-sm' : ''}>
+        <JudgePanel 
+          comment={judgeComment}
+          models={models}
+          totalCost={totalCost}
+          evaluations={evaluations}
+          visible={!showConclusions}
+        />
+      </div>
       
       {/* Confetti effect */}
       {showConfetti && (

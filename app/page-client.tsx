@@ -7,7 +7,7 @@ export default function ShowdownAnimePage() {
   const [isShowActive, setIsShowActive] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white text-black relative">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
         
@@ -61,14 +61,6 @@ export default function ShowdownAnimePage() {
         </div>
       )}
 
-      {/* Background blur overlay - visible when not active */}
-      {!isShowActive && (
-        <div 
-          className="fixed inset-0 bg-white/30 backdrop-blur-md z-40"
-          style={{ pointerEvents: 'none' }}
-        />
-      )}
-      
       {/* Main stage */}
       <AnimeStage 
         isActive={isShowActive} 
