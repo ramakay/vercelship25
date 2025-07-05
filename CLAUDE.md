@@ -23,10 +23,9 @@ This project has evolved from a simple multi-model comparison to a comprehensive
 - **Quota**: 50k tokens/day free, then pay-as-you-go
 
 ### 2. Model Evaluation System (NEW)
-- **SWE-bench Style Scoring**: Automated evaluation using GPT-4o-mini as judge
-- **Two-Step Process**:
-  1. Gemini 2.5 Pro searches for current Vercel feature information using `useSearchGrounding: true`
-  2. GPT-4o-mini evaluates responses based on search results
+- **SWE-bench Style Scoring**: Automated evaluation using OpenAI Responses API
+- **Real Web Search**: Judge uses OpenAI's webSearchPreview tool to find current information
+- **Hybrid Approach**: Main models use Vercel AI Gateway, judge uses OpenAI API for web search
 - **Metrics**:
   - Relevance (0-10): Does answer address prompt completely?
   - Reasoning (0-5): Logical steps and citations present?
@@ -157,34 +156,33 @@ npm run export:metrics  # Export all benchmark data
 - Tests must make real API calls and verify actual responses
 - Error handling must be comprehensive and informative
 
-## Web Search Implementation
+## Judge Implementation
 
 ### Architecture
-The evaluation system uses a two-step process for accurate scoring:
+The evaluation system uses OpenAI Responses API with real web search:
 
 ```typescript
-// Step 1: Search for current information using Gemini with search grounding
-const searchResult = await generateText({
-  model: gateway('google/gemini-2.5-pro', {
-    useSearchGrounding: true,
-  }),
-  prompt: `Search for current information about Vercel Ship 2025 features...`,
+// Judge with real web search using OpenAI Responses API
+const judgeResult = await generateText({
+  model: openai.responses('gpt-4o-mini'),
+  prompt: judgePrompt,
+  tools: {
+    web_search_preview: openai.tools.webSearchPreview(),
+  },
+  toolChoice: { type: 'tool', toolName: 'web_search_preview' },
   temperature: 0.1,
 });
 
-// Step 2: Judge with search context using GPT-4o-mini
-const evaluation = await generateText({
-  model: gateway('openai/gpt-4o-mini'),
-  prompt: judgePrompt + searchResult.text,
-  temperature: 0.1,
-});
+// Access web search sources
+const sources = judgeResult.sources;
 ```
 
 ### Key Points
-- Gemini 2.5 Pro performs web searches with `useSearchGrounding: true`
-- GPT-4o-mini evaluates based on search results for accuracy
-- No OpenAI API key needed - uses Vercel AI Gateway
-- Production-grade comparison with no simulation
+- Uses OpenAI Responses API with webSearchPreview tool for real web search
+- Judge finds current Vercel information through actual web searches
+- Returns search sources for transparency
+- Hybrid approach: Gateway for main models, OpenAI API for judge
+- Production-grade evaluation with real search results
 
 ## Testing Requirements
 

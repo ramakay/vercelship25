@@ -18,7 +18,8 @@ const PRICING = {
   'xai/grok-3': { input: 0.005, output: 0.015 },
   'anthropic/claude-4-opus': { input: 0.015, output: 0.075 },
   'google/gemini-2.5-pro': { input: 0.00125, output: 0.00375 },
-  'openai/gpt-4o-mini': { input: 0.00015, output: 0.0006 }
+  'openai/gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+  'google/gemini-2.5-flash': { input: 0.000075, output: 0.0003 }
 } as const;
 
 type ModelProvider = keyof typeof PRICING;
@@ -298,21 +299,27 @@ export async function POST(request: NextRequest) {
             
             // Log for visibility
             console.log('🔍 Judge performing web search for Vercel features...');
+            console.log('Using model:', 'openai.responses(gpt-4o-mini)');
+            console.log('Web search tool enabled:', true);
             
             // Judge prompt that will use web search
             const judgePrompt = `You are evaluating AI model responses about Vercel Ship 2025 features.
 
-Use the web search tool to find current information about:
-- Vercel AI Gateway status and features
-- Active CPU and Fluid Compute availability
-- Sandbox feature status
-- Other Ship 2025 features
+**USE THE WEB SEARCH TOOL** to find the latest information about:
+- Vercel AI Gateway pricing and features
+- Vercel Ship 2025 announcements
+- Vercel Fluid Compute and Active CPU pricing
+- Vercel's latest product updates
 
-Then evaluate each model's response for accuracy against your search results.
+Based on your web search and the responses below, evaluate each model on:
+1. Accuracy of Vercel Ship 2025 feature information
+2. Correct understanding of AI Gateway functionality
+3. Appropriate system architecture for the $10 budget constraint
+4. Code quality and clarity
 
-User asked: "${prompt}"
+**User asked:** "${prompt}"
 
-Model responses to evaluate:
+**Model responses to evaluate:**
 ${results.map((r, i) => `\n${i + 1}. ${r.model}:\n${r.text.substring(0, 400)}...`).join('\n')}
 
 After searching, score each response on:
@@ -340,6 +347,7 @@ Return JSON only:
 }`;
 
             // Use OpenAI responses API with web search
+            console.log('Attempting to call judge with web search...');
             const judgeResult = await generateText({
               model: openai.responses('gpt-4o-mini'),
               prompt: judgePrompt,
@@ -350,23 +358,16 @@ Return JSON only:
               temperature: 0.1,
             });
             
+            // Extract the evaluation from the judge's response
+            const judgeText = judgeResult.text;
+            
             await logger.log('INFO', 'Judge evaluation complete', {
               steps: judgeResult.steps?.length,
               toolCalls: judgeResult.steps?.filter(s => s.toolCalls?.length > 0).length
             });
             
-            // Log search sources
-            const sources = judgeResult.sources;
-            console.log('Sources found:', sources?.length || 0);
-            if (sources && sources.length > 0) {
-              console.log('Web search sources:');
-              sources.forEach((source: any) => {
-                console.log(`- ${source.title || 'Untitled'}: ${source.url || 'No URL'}`);
-              });
-            }
-            
-            // Extract the evaluation from the judge's response
-            const judgeText = judgeResult.text;
+            // Log the actual judge response
+            console.log('Judge response preview:', judgeText.substring(0, 200) + '...');
             
             // Send judge's evaluation to the client
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
@@ -383,6 +384,26 @@ Return JSON only:
               judgeUsage.outputTokens || 0
             );
             totalCost += judgeCost;
+            
+            // Log detailed judge result info
+            console.log('=== JUDGE RESULT DETAILS ===');
+            console.log('Steps:', judgeResult.steps?.length || 0);
+            console.log('Tool calls made:', judgeResult.steps?.filter(s => s.toolCalls?.length > 0).length || 0);
+            
+            // Log search sources
+            const sources = judgeResult.sources;
+            console.log('Sources found:', sources?.length || 0);
+            if (sources && sources.length > 0) {
+              console.log('Web search sources:');
+              sources.forEach((source: any) => {
+                console.log(`- ${source.title || 'Untitled'}: ${source.url || 'No URL'}`);
+              });
+            } else {
+              console.log('No web search sources found - judge may not have performed search');
+            }
+            
+            // Log the actual judge response
+            console.log('Judge response preview:', judgeText.substring(0, 200) + '...');
             
             const totalJudgeTime = Date.now() - judgeStartTime;
             await logger.log('INFO', 'Judge evaluation completed', {
@@ -450,7 +471,15 @@ Return JSON only:
             }
 
           } catch (error) {
+            console.error('Judge evaluation error:', error);
             await logger.logError(error, 'Judge evaluation');
+            
+            // Log specific error details
+            if (error instanceof Error) {
+              console.error('Error message:', error.message);
+              console.error('Error stack:', error.stack);
+            }
+            
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'judge-error',
               error: error instanceof Error ? error.message : 'Judge evaluation failed'
