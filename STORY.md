@@ -150,6 +150,44 @@ const judge = await generateText({
 
 The twist? Even with web search tools, the judge found 0 sources. The preview feature has its own previews.
 
+## Why Vercel AI Gateway Anyway?
+
+Given these limitations, why not use OpenRouter, Cloudflare, Requesty, or Invariant Labs instead?
+
+**The Landscape:**
+- **OpenRouter**: 200+ models, but you handle your own deployment
+- **Cloudflare AI Gateway**: Great caching, but separate from your app infrastructure  
+- **Requesty**: Full tool support, but another service to manage
+- **Invariant Labs**: Sophisticated guardrails (PII detection, data flow control) that Vercel completely lacks
+
+**The Vercel Advantage:**
+```typescript
+// One-line model switching in your existing Vercel app
+const response = await streamText({
+  model: gateway('anthropic/claude-4-opus'),
+  prompt: userInput
+});
+```
+
+Zero config. Zero new services. It just works with your Vercel deployment.
+
+**The Security Trade-off:**
+While Invariant Labs offers contextual security:
+```python
+# Prevent sensitive data leaks
+raise "PII leak detected" if:
+    (call: ToolCall) -> (msg: Message)
+    call is tool:get_user_data
+    any(pii_detected(msg.content))
+```
+
+Vercel offers... nothing. You implement your own guardrails.
+
+**My Choice:**
+For this $10 experiment focused on performance and economics, Vercel's seamless integration won. For production systems handling sensitive data? I'd layer in Invariant Labs' guardrails or build custom security rules.
+
+The beauty of constraints: They force clarity about what matters most.
+
 ## What I Learned Building This
 
 **1. Animations aren't decoration. They're information.**
@@ -212,64 +250,6 @@ The repository includes:
 - Every workaround that made it possible
 
 Clone it. Fork it. Improve it. My remaining budget is yours to experiment with.
-
-## Why Use Vercel AI Gateway?
-
-After testing multiple AI orchestration platforms, here's where Vercel's Gateway stands:
-
-**The Competitors:**
-- **OpenRouter**: 200+ models, usage-based pricing, no deployment integration
-- **Requesty**: Unified API, good model selection, standalone service
-- **Cloudflare AI Gateway**: Cache-first, DDoS protection, Workers integration
-- **Invariant Labs Guardrails**: Content filtering, PII detection, security-focused
-
-**Vercel's Unique Position:**
-
-```typescript
-// One-line model switching that just works
-const response = await streamText({
-  model: gateway('anthropic/claude-4-opus'), // or xai/grok-3, or google/gemini-2.5-pro
-  prompt: userInput
-});
-```
-
-**Key Advantages:**
-1. **Zero-config deployment integration** - Works instantly with Vercel Functions
-2. **Unified billing** - AI costs appear in your Vercel invoice
-3. **Edge-optimized** - Runs at the edge with your app
-4. **Built-in observability** - Metrics flow to your Vercel dashboard
-
-**Where Others Excel:**
-- **OpenRouter**: More models (200+ vs 30+)
-- **Cloudflare**: Better caching and rate limiting
-- **Invariant/Guardrails**: Superior content safety features
-- **Requesty**: More flexible tool calling support
-
-**The Trade-offs:**
-
-| Feature | Vercel | OpenRouter | Cloudflare | Requesty |
-|---------|--------|------------|------------|----------|
-| Model Count | 30+ | 200+ | 15+ | 50+ |
-| Tool Calling | Limited* | Full | Limited | Full |
-| Edge Runtime | ✅ | ❌ | ✅ | ❌ |
-| Unified Deploy | ✅ | ❌ | ✅ | ❌ |
-| Custom Routes | ❌ | ✅ | ✅ | ✅ |
-
-*Currently only Gemini supports search grounding
-
-**When to Choose Vercel AI Gateway:**
-- You're already on Vercel (seamless integration)
-- You need edge performance
-- You want unified billing and observability
-- You're building production apps, not research tools
-
-**When to Look Elsewhere:**
-- You need extensive tool calling (use OpenRouter/Requesty)
-- You require advanced guardrails (use Invariant Labs)
-- You want maximum model variety (use OpenRouter)
-- You need aggressive caching (use Cloudflare)
-
-The beauty? You can mix and match. My solution uses Vercel Gateway for the main models and OpenAI's API directly for the judge's web search.
 
 ## The Consensus Achievement
 
