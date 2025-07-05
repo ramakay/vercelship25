@@ -43,3 +43,12 @@ next-env.d.ts
 # logs
 /logs/
 *.log
+
+# LinkedIn and article content (private)
+STORY.md
+linkedin-*.md
+linkedin-*.txt
+/docs/linkedin-*.md
+/docs/article-*.md
+/docs/naval-*.md
+/docs/cover-image-prompt.md
