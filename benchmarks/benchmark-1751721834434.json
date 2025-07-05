@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-07-05T13:23:54.434Z",
+  "prompt": "Design a Next.js 15 app architecture using Vercel's AI Gateway. Provide:\n\n1. HIGH-LEVEL PSEUDO CODE ONLY (no full implementations)\n2. A Mermaid diagram showing the system architecture\n3. Brief bullet points for each component\n\nRequirements:\n- AI Gateway to compare 3 models (Grok, Claude, Gemini)\n- Judge scoring system\n- Cost tracking under $10\n- Results dashboard\n\nKeep response CONCISE. Use pseudo code and diagrams, NOT full code.",
+  "evaluations": [
+    {
+      "model": "xai/grok-3",
+      "text": "### 1. High-Level Pseudo Code\n\n```pseudo\n// App Entry (pages/index.js)\nfunction HomePage() {\n  initializeAppState()\n  fetchModelResultsFromGateway()\n  renderDashboard()\n}\n\n// AI Gateway Integration (lib/ai-gateway.js)\nfunction setupAIGateway() {\n  configureGateway({\n    models: ['grok', 'claude', 'gemini'],\n    endpoint: 'vercel-ai-gateway',\n    costLimit: 10.00\n  })\n  return gatewayClient\n}\n\nfunction fetchModelResults(prompt) {\n  results = gatewayClient.query(prompt, models)\n  trackCost(results.cost)\n  return results\n}\n\n// Judge Scoring System (lib/scoring.js)\nfunction calculateScores(results) {\n  scores = {}\n  for each model in results {\n    scores[model] = evaluateCriteria(results[model])\n  }\n  return scores\n}\n\n// Cost Tracking (lib/cost-tracker.js)\nfunction trackCost(cost) {\n  if (totalCost + cost > 10.00) {\n    throw CostLimitExceededError\n  }\n  totalCost += cost\n  updateCostDashboard()\n}\n\n// Dashboard Component (components/dashboard.js)\nfunction Dashboard({ results, scores, cost }) {\n  renderModelComparisonChart(results, scores)\n  renderCostTracker(cost)\n  renderPromptInput()\n}\n```\n\n### 2. Mermaid Diagram (System Architecture)\n\n```mermaid\ngraph TD\n    A[Next.js App] --> B[Vercel AI Gateway]\n    B --> C1[Grok Model]\n    B --> C2[Claude Model]\n    B --> C3[Gemini Model]\n    B --> D[Cost Tracker]\n    A --> E[Scoring System]\n    E --> F[Results Dashboard]\n    D --> F\n    C1 --> E\n    C2 --> E\n    C3 --> E\n```\n\n### 3. Component Descriptions (Brief Bullet Points)\n\n- **Next.js App (Frontend)**\n  - Entry point for user interaction.\n  - Manages state and renders dashboard.\n  - Handles prompt input for AI queries.\n\n- **Vercel AI Gateway**\n  - Central hub for querying multiple AI models.\n  - Routes requests to Grok, Claude, Gemini.\n  - Tracks API usage for cost monitoring.\n\n- **AI Models (Grok, Claude, Gemini)**\n  - External services for generating responses.\n  - Return results to gateway for processing.\n\n- **Cost Tracker**\n  - Monitors API call costs in real-time.\n  - Enforces $10 limit with alerts/errors.\n  - Updates dashboard with cost data.\n\n- **Scoring System**\n  - Evaluates model outputs based on predefined criteria.\n  - Assigns scores for accuracy, relevance, etc.\n  - Feeds scores to dashboard for visualization.\n\n- **Results Dashboard**\n  - Displays model responses, scores, and costs.\n  - Provides charts for comparison.\n  - Includes UI for user prompts.\n\nThis architecture ensures modularity, cost control, and a clear user experience while leveraging Vercel’s AI Gateway for model integration.",
+      "latency": 10034,
+      "promptTokens": 105,
+      "completionTokens": 614,
+      "cost": 0.009734999999999999,
+      "scores": {
+        "relevance": 8,
+        "reasoning": 4,
+        "style": 4,
+        "accuracy": 8,
+        "honesty": 3,
+        "explanation": "The response is mostly relevant and logical, but the cost tracking implementation lacks detail. The AI Gateway's cost limit is mentioned, but the tracking mechanism is vague. No hallucinations detected."
+      },
+      "totalScore": 43,
+      "finalScore": 32.86865
+    },
+    {
+      "model": "anthropic/claude-4-opus",
+      "text": "## System Architecture\n\n```mermaid\ngraph TB\n    subgraph \"Client\"\n        UI[Next.js UI]\n        D[Dashboard]\n    end\n    \n    subgraph \"Next.js API Routes\"\n        API[/api/compare]\n        JUDGE[/api/judge]\n        COST[/api/cost-tracker]\n    end\n    \n    subgraph \"Vercel AI Gateway\"\n        GW[AI Gateway Router]\n        GROK[Grok API]\n        CLAUDE[Claude API]\n        GEMINI[Gemini API]\n    end\n    \n    subgraph \"Storage\"\n        KV[(Vercel KV)]\n        PG[(Postgres)]\n    end\n    \n    UI --> API\n    API --> GW\n    GW --> GROK\n    GW --> CLAUDE\n    GW --> GEMINI\n    API --> JUDGE\n    JUDGE --> GW\n    API --> COST\n    COST --> KV\n    D --> PG\n    API --> PG\n```\n\n## Component Pseudo Code\n\n### `/api/compare/route.ts`\n```pseudo\nPOST handler:\n  - Extract prompt from request\n  - Check cost limit via KV store\n  - If under $10:\n    - Call AI Gateway with prompt for all 3 models\n    - Store responses temporarily\n    - Trigger judge evaluation\n    - Save results to Postgres\n  - Return comparison results\n```\n\n### `/api/judge/route.ts`\n```pseudo\nPOST handler:\n  - Receive model responses\n  - Create judge prompt with scoring criteria\n  - Send to AI Gateway (using cheapest model)\n  - Parse scores (0-100) for each response\n  - Return structured scoring data\n```\n\n### `/api/cost-tracker/route.ts`\n```pseudo\nGET handler:\n  - Fetch current spend from KV\n  - Return remaining budget\n\nPOST handler:\n  - Calculate token cost for request\n  - Update KV with new total\n  - Return success/failure\n```\n\n### `app/page.tsx`\n```pseudo\nComponent:\n  - State: prompt, results, loading\n  - Form to submit comparison prompt\n  - Display 3-column layout with responses\n  - Show judge scores and reasoning\n  - Cost indicator widget\n```\n\n### `app/dashboard/page.tsx`\n```pseudo\nComponent:\n  - Fetch historical comparisons\n  - Chart component for model performance\n  - Cost breakdown table\n  - Export functionality\n```\n\n## Key Components\n\n**AI Gateway Config**\n- Rate limiting per model\n- Automatic failover\n- Request logging\n- Cost calculation middleware\n\n**Database Schema**\n- `comparisons`: id, prompt, timestamp\n- `responses`: comparison_id, model, response, score\n- `costs`: model, tokens, cost, timestamp\n\n**Environment Variables**\n- `VERCEL_AI_GATEWAY_URL`\n- `GROK_API_KEY`, `CLAUDE_API_KEY`, `GEMINI_API_KEY`\n- `KV_URL`, `POSTGRES_URL`\n- `COST_LIMIT=10`",
+      "latency": 19723,
+      "promptTokens": 125,
+      "completionTokens": 730,
+      "cost": 0.056625,
+      "scores": {
+        "relevance": 9,
+        "reasoning": 5,
+        "style": 5,
+        "accuracy": 9,
+        "honesty": 4,
+        "explanation": "Well-structured and relevant response. All components align with Vercel's features. No hallucinations detected."
+      },
+      "totalScore": 50,
+      "finalScore": 29.71075
+    },
+    {
+      "model": "google/gemini-2.5-pro",
+      "text": "Here is the design for a Next.js 15 app using Vercel's AI Gateway.\n\n### 1. System Architecture Diagram (Mermaid)\n\n```mermaid\ngraph TD\n    subgraph \"User Browser\"\n        A[Next.js Client: Input Form] --> B{Server Action};\n    end\n\n    subgraph \"Vercel Platform\"\n        B --> C[API Route: /api/compare];\n        C --> D[Vercel AI Gateway];\n        D -- Prompt --> E[Grok];\n        D -- Prompt --> F[Claude];\n        D -- Prompt --> G[Gemini];\n        \n        subgraph \"Parallel Responses\"\n            E -- Response & Cost --> D;\n            F -- Response & Cost --> D;\n            G -- Response & Cost --> D;\n        end\n\n        D --> C;\n        C -- Responses --> H[API Route: /api/judge];\n        H -- \"Judging Prompt\" --> I[Judge LLM e.g., GPT-4o];\n        I -- \"Scores (JSON)\" --> H;\n        H -- Scores --> C;\n        C -- \"Save Result\" --> J[(Vercel Postgres)];\n\n        K[Next.js RSC: Dashboard] -- \"Read Results\" --> J;\n    end\n\n    J -- Data --> K;\n    K -- Rendered HTML --> A;\n```\n\n### 2. Component Explanations\n\n*   **Next.js Client:** A React Server Component page with a client-side form for user input. Displays results immediately after submission.\n*   **Server Action:** Handles form submission on the server, orchestrating the API calls and data handling.\n*   **API Route: `/api/compare`:** The main backend logic. Receives the prompt, calls the AI Gateway, triggers the judging, and saves the final result.\n*   **Vercel AI Gateway:** The central router.\n    *   Forwards the user's prompt to Grok, Claude, and Gemini in parallel.\n    *   Collects responses, latency, and cost/token usage for each model.\n*   **API Route: `/api/judge`:** An internal API that takes the three model outputs and uses a fourth \"judge\" LLM to score them based on quality, relevance, and other criteria.\n*   **Judge LLM (e.g., GPT-4o):** A powerful model configured with a specific system prompt to act as an impartial evaluator and return a structured JSON score.\n*   **Vercel Postgres:** A serverless SQL database to store the prompt, all three responses, the judge's scores, and the cost data for each request.\n*   **Next.js RSC Dashboard:** A server-rendered page that reads directly from Vercel Postgres to display a history of all comparisons and a running total of the costs.\n\n### 3. High-Level Pseudo Code\n\n**`app/page.tsx` (Client Form & Server Action)**\n```jsx\n// COMPONENT: PromptForm\n// Uses a <form> that calls a Server Action.\n// Displays results and loading state.\n\n// SERVER ACTION: handleComparison(formData)\nfunction handleComparison(formData) {\n  prompt = formData.get('prompt')\n  \n  // Call the main API orchestrator\n  finalResult = fetch('/api/compare', { body: { prompt } })\n  \n  // Revalidate dashboard to show new data\n  revalidatePath('/dashboard')\n  \n  return finalResult\n}\n```\n\n**`app/api/compare/route.ts` (Main Orchestrator)**\n```typescript\n// FUNCTION: POST(request)\nfunction POST(request) {\n  prompt = request.json().prompt\n\n  // 1. Query models via AI Gateway in parallel\n  gateway = createVercelAI_Gateway()\n  [grok, claude, gemini] = Promise.all([\n    gateway.run('grok', { prompt }),\n    gateway.run('claude', { prompt }),\n    gateway.run('gemini', { prompt })\n  ])\n\n  // 2. Call judge API for scoring\n  scores = fetch('/api/judge', { \n    body: { prompt, grok.response, claude.response, gemini.response } \n  })\n\n  // 3. Aggregate data\n  totalCost = grok.cost + claude.cost + gemini.cost\n  result = { prompt, responses: {grok, claude, gemini}, scores, totalCost }\n\n  // 4. Save to database\n  db.query('INSERT INTO comparisons ...', result)\n\n  // 5. Return result to client\n  return Response.json(result)\n}\n```\n\n**`app/api/judge/route.ts` (Scoring System)**\n```typescript\n// FUNCTION: POST(request)\nfunction POST(request) {\n  { prompt, grokResponse, claudeResponse, geminiResponse } = request.json()\n\n  judgingPrompt = `\n    As an expert judge, score these three responses for the prompt: \"${prompt}\".\n    Response 1 (Grok): ${grokResponse}\n    Response 2 (Claude): ${claudeResponse}\n    Response 3 (Gemini): ${geminiResponse}\n    Return a JSON object with scores from 1-10 for 'clarity' and 'relevance' for each model.\n  `\n  // Use a powerful model as the judge\n  judge_llm = new OpenAI('gpt-4o') \n  scores = judge_llm.chat.completions.create({ messages: [judgingPrompt], response_format: 'json' })\n\n  return Response.json(scores.choices[0].message.content)\n}\n```\n\n**`app/dashboard/page.tsx` (Results Dashboard)**\n```jsx\n// REACT SERVER COMPONENT: DashboardPage\nasync function DashboardPage() {\n  // 1. Fetch all data directly from DB on the server\n  allResults = db.query('SELECT * FROM comparisons ORDER BY created_at DESC')\n  \n  // 2. Calculate total cost\n  totalCost = allResults.reduce((sum, row) => sum + row.cost, 0)\n\n  // 3. Render UI\n  return (\n    <main>\n      <h1>Results Dashboard</h1>\n      <p>Total Spend: ${totalCost.toFixed(2)} / $10.00</p>\n      \n      // Map over allResults to display a table of past comparisons\n      <ResultsTable data={allResults} />\n    </main>\n  )\n}\n```",
+      "latency": 33883,
+      "promptTokens": 107,
+      "completionTokens": 1439,
+      "cost": 0.00553,
+      "scores": {
+        "relevance": 7,
+        "reasoning": 4,
+        "style": 4,
+        "accuracy": 8,
+        "honesty": 3,
+        "explanation": "The architecture is relevant but lacks detail in the cost tracking aspect. Some components are not fully explained. No hallucinations detected."
+      },
+      "totalScore": 41,
+      "finalScore": 7.061699999999997
+    }
+  ],
+  "summary": {
+    "winner": "xai/grok-3",
+    "totalCost": 0.07232500000000001
+  }
+}

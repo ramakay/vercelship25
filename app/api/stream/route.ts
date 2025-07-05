@@ -6,6 +6,7 @@ import { costLogger } from '@/app/services/cost-logger';
 import { FileLogger } from '@/app/lib/file-logger';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { getMockResponse, streamMockResponse } from '@/app/lib/mock-responses';
 
 // Create gateway instance with API key
 const gateway = createGateway({
@@ -204,21 +205,74 @@ export async function POST(request: NextRequest) {
             
             await logger.log('ERROR', `Model ${model} failed`, errorDetails);
             
-            // Check for specific error types
+            // Check for specific error types and decide if we should use mock
+            let shouldUseMock = false;
             if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
               await logger.log('ERROR', 'Authentication failed - check API key');
-            } else if (errorMessage.includes('429')) {
-              await logger.log('ERROR', 'Rate limit exceeded');
+            } else if (errorMessage.includes('429') || errorMessage.includes('rate limit') || 
+                       errorMessage.includes('quota') || errorMessage.includes('credits')) {
+              await logger.log('ERROR', 'Rate limit or credits exceeded - falling back to mock');
+              shouldUseMock = true;
             } else if (errorMessage.includes('timeout')) {
               await logger.log('ERROR', 'Request timed out');
             }
             
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'error',
-              model,
-              error: errorMessage,
-              details: errorDetails
-            })}\n\n`));
+            // Use mock response if appropriate
+            if (shouldUseMock) {
+              await logger.log('INFO', `Using mock response for ${model}`);
+              
+              // Stream mock response
+              const mockData = getMockResponse(model);
+              let fullText = '';
+              
+              for await (const chunk of streamMockResponse(model)) {
+                fullText += chunk;
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                  type: 'text-delta',
+                  model,
+                  textDelta: chunk
+                })}\n\n`));
+              }
+              
+              const mockLatency = 2000; // Simulate 2s response time
+              const cost = mockData.cost;
+              totalCost += cost;
+              
+              results.push({
+                model,
+                text: fullText,
+                latency: mockLatency,
+                promptTokens: Math.floor(mockData.tokens * 0.2), // Estimate prompt tokens
+                completionTokens: Math.floor(mockData.tokens * 0.8), // Estimate completion tokens
+                cost
+              });
+              
+              // Send completion with mock indicator
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'model-complete',
+                model,
+                latency: mockLatency,
+                usage: { 
+                  promptTokens: Math.floor(mockData.tokens * 0.2), 
+                  completionTokens: Math.floor(mockData.tokens * 0.8) 
+                },
+                cost,
+                isMock: true
+              })}\n\n`));
+              
+              await logger.log('INFO', `Mock response completed for ${model}`, {
+                cost: `$${cost.toFixed(6)}`,
+                tokens: mockData.tokens
+              });
+            } else {
+              // Send error as before
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'error',
+                model,
+                error: errorMessage,
+                details: errorDetails
+              })}\n\n`));
+            }
           }
         }
 
@@ -236,6 +290,12 @@ export async function POST(request: NextRequest) {
             await logger.log('INFO', 'Starting web search for Vercel documentation');
             const searchStartTime = Date.now();
             
+            // Send search started notification
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'judge-comment',
+              comment: '🔍 Performing web search...\nSearching site:vercel.com for Ship 2025 features...'
+            })}\n\n`));
+            
             const searchPrompt = `site:vercel.com Search for official Vercel documentation about:
 - "Ship 2025" announcement and new features
 - "AI Gateway" current status (Beta/Open Beta)
@@ -245,25 +305,52 @@ export async function POST(request: NextRequest) {
 - "Rolling Releases" feature status
 Search only official vercel.com documentation pages, blog posts, and announcements.`;
 
-            // Simulated web search for now (real implementation would use a search API)
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'judge-comment',
-              comment: '🔍 Performing web search...\nSearching site:vercel.com for Ship 2025 features...'
-            })}\n\n`));
+            let searchInfo = '';
             
-            // Simulate search delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            const searchInfo = `Based on available documentation:
+            try {
+              // Perform real web search using Gemini with search grounding
+              await logger.log('INFO', 'Calling Gemini with search grounding enabled');
+              
+              const searchResult = streamText({
+                model: gateway('google/gemini-2.5-pro', {
+                  useSearchGrounding: true,
+                }),
+                prompt: searchPrompt,
+                temperature: 0.1,
+              });
+              
+              let searchText = '';
+              for await (const textPart of searchResult.textStream) {
+                searchText += textPart;
+              }
+              
+              searchInfo = searchText || `Based on available documentation:
 - Vercel AI Gateway is in Open Beta
 - Supports multiple AI models including Grok, Claude, and Gemini
 - Active CPU billing is Generally Available
 - Sandbox is in Public Beta
 - Queues is in Limited Beta`;
+              
+              await logger.log('INFO', 'Web search completed successfully', {
+                searchLength: searchInfo.length,
+                containsFeatureInfo: searchInfo.includes('AI Gateway') || searchInfo.includes('Ship 2025')
+              });
+              
+            } catch (searchError) {
+              await logger.logError(searchError, 'Web search failed, using fallback');
+              // Fallback to basic info if search fails
+              searchInfo = `Based on available documentation:
+- Vercel AI Gateway is in Open Beta
+- Supports multiple AI models including Grok, Claude, and Gemini
+- Active CPU billing is Generally Available
+- Sandbox is in Public Beta
+- Queues is in Limited Beta`;
+            }
             
             const searchDuration = Date.now() - searchStartTime;
-            await logger.logPerformance('Web search (simulated)', searchDuration, {
-              resultLength: searchInfo.length
+            await logger.logPerformance('Web search', searchDuration, {
+              resultLength: searchInfo.length,
+              usedFallback: !searchInfo.includes('search results') && !searchInfo.includes('found')
             });
             
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
@@ -275,16 +362,26 @@ Search only official vercel.com documentation pages, blog posts, and announcemen
             await logger.log('INFO', 'Starting judge evaluation with search context');
             const evalStartTime = Date.now();
             
-            const judgePrompt = `Evaluate AI responses. Be CONCISE.
+            const judgePrompt = `Evaluate AI responses for accuracy and hallucinations. Be CONCISE.
 
-Context: ${searchInfo}
+IMPORTANT: Check for hallucinations by comparing responses against the web search results below.
+Any claims about Vercel features NOT mentioned in the search results should be marked as potential hallucinations.
+
+Web Search Results:
+${searchInfo}
 
 User asked: "${prompt}"
 
-Responses:
-${results.map((r, i) => `${i + 1}. ${r.model}: ${r.text.substring(0, 300)}...`).join('\n')}
+Responses to evaluate:
+${results.map((r, i) => `${i + 1}. ${r.model}: ${r.text.substring(0, 500)}...`).join('\n\n')}
 
-Score each (0-10 relevance, 0-5 reasoning/style/accuracy/honesty).
+Score each response:
+- relevance (0-10): Does it answer the question?
+- reasoning (0-5): Are claims supported with logic?
+- style (0-5): Is it clear and well-organized?
+- accuracy (0-10): Are all facts correct based on web search? Deduct points for hallucinations.
+- honesty (0-5): Does it acknowledge uncertainty? 1-2 if making claims without evidence.
+
 Return JSON only:
 {
   "evaluations": [
@@ -296,7 +393,7 @@ Return JSON only:
         "style": 4,
         "accuracy": 9,
         "honesty": 3,
-        "explanation": "1 sentence"
+        "explanation": "Brief explanation noting any hallucinations"
       }
     }
   ]

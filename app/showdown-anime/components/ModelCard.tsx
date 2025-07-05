@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Maximize2 } from 'react-feather';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface ModelData {
   id: string;
@@ -94,20 +95,9 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
           </div>
           <div className="relative bg-gray-50 rounded-lg p-6 h-full flex flex-col" style={{ height: '280px' }}>
             <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ maxHeight: '220px' }}>
-              <p 
-                className="response-text"
-                style={{ 
-                  fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-                  color: 'rgba(0,0,0,0.85)',
-                  fontSize: '13px',
-                  display: model.response ? 'block' : 'none',
-                  wordBreak: 'break-word',
-                  lineHeight: '1.5',
-                  letterSpacing: '-0.02em'
-                }}
-              >
-                {model.response}
-              </p>
+              {model.response ? (
+                <MarkdownRenderer text={model.response} className="text-sm" />
+              ) : null}
             </div>
             {model.response && model.response.length > 0 && (
               <button
@@ -155,111 +145,67 @@ export default function ModelCard({ id, model, isActive }: ModelCardProps) {
         )}
       </div>
       
-      {/* Full Response Modal */}
+      {/* Full Response Modal - Fullscreen */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto"
-          style={{ zIndex: 1000 }}
+          className="fixed inset-0 bg-black bg-opacity-75 z-[1000]"
           onClick={() => setIsModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-lg w-full my-4 shadow-2xl"
-            style={{ maxWidth: '1200px', maxHeight: 'calc(100vh - 2rem)' }}
+            className="fixed inset-0 bg-white overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-2xl font-light">
-                {model.name} Response
+            {/* Header with close button */}
+            <div className="bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between shrink-0">
+              <h3 className="text-3xl font-light tracking-wider text-gray-800">
+                {model.name.toUpperCase()} RESPONSE
               </h3>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">Press ESC to close</span>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-3 hover:bg-gray-100 rounded-full transition-colors group"
+                  aria-label="Close modal"
+                >
+                  <svg 
+                    width="28" 
+                    height="28" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                    className="group-hover:rotate-90 transition-transform duration-200"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Content area - scrollable */}
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+              <div className="max-w-5xl mx-auto px-8 py-12">
+                <MarkdownRenderer text={model.response} />
+              </div>
+            </div>
+            
+            {/* Footer with metadata */}
+            <div className="bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-6 text-sm text-gray-600">
+                <span>Tokens: {model.tokens || '—'}</span>
+                <span>Cost: {model.cost > 0 ? `$${model.cost.toFixed(4)}` : '—'}</span>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                Close
               </button>
-            </div>
-            <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-              <FormattedResponse text={model.response} />
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Component to format response with markdown and code blocks
-function FormattedResponse({ text }: { text: string }) {
-  // Split text by code blocks
-  const parts = text.split(/```(\w*)\n([\s\S]*?)```/g);
-  
-  const formatMarkdown = (content: string) => {
-    // Process markdown formatting
-    const formatted = content
-      // Headers
-      .replace(/^### (.+)$/gm, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-semibold mt-8 mb-4">$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
-      // Bold
-      .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      // Lists
-      .replace(/^- (.+)$/gm, '<li class="ml-4">• $1</li>')
-      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4"><span class="font-mono text-sm">$&</span></li>')
-      // Line breaks
-      .replace(/\n\n/g, '</p><p class="mb-4">')
-      .replace(/\n/g, '<br/>');
-    
-    return `<p class="mb-4">${formatted}</p>`;
-  };
-  
-  return (
-    <div className="space-y-4" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      {parts.map((part, index) => {
-        // Even indices are text, odd indices are language, even+1 indices are code
-        if (index % 3 === 0) {
-          // Regular text with markdown formatting
-          return part.trim() ? (
-            <div 
-              key={index} 
-              className="text-gray-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: formatMarkdown(part) }}
-            />
-          ) : null;
-        } else if (index % 3 === 2) {
-          // Code block
-          const language = parts[index - 1] || 'plaintext';
-          const isMermaid = language.toLowerCase() === 'mermaid';
-          
-          return (
-            <div key={index} className="relative group my-6">
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                <button
-                  onClick={() => navigator.clipboard.writeText(part)}
-                  className="px-3 py-1 text-xs bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                  Copy
-                </button>
-              </div>
-              {isMermaid ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                  <div className="text-xs text-gray-500 mb-2">Mermaid Diagram</div>
-                  <pre className="text-sm text-gray-700 overflow-x-auto">
-                    <code>{part}</code>
-                  </pre>
-                </div>
-              ) : (
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-                  <code className={`language-${language} text-sm font-mono`}>{part}</code>
-                </pre>
-              )}
-            </div>
-          );
-        }
-        return null;
-      })}
     </div>
   );
 }

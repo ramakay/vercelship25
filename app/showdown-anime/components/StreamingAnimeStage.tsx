@@ -374,7 +374,7 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
   return (
     <div ref={stageRef} className="w-full h-full flex flex-col bg-white">
       {/* Main content area with top margin to account for Judge Panel */}
-      <div className="flex-1 flex items-center justify-center p-8 relative" style={{ marginTop: '120px' }}>
+      <div className="flex-1 flex items-center justify-center p-8 relative" style={{ marginTop: '140px' }}>
         {/* Use case panel */}
         {showUseCase && (
           <UseCasePanel 
@@ -385,7 +385,7 @@ Keep response CONCISE. Use pseudo code and diagrams, NOT full code.`
         )}
         
         {/* Model cards */}
-        <div className="model-cards-container flex gap-8 justify-center items-center" style={{ opacity: isActive ? 1 : 0, marginTop: '100px' }}>
+        <div className="model-cards-container flex gap-8 justify-center items-center" style={{ opacity: isActive ? 1 : 0, marginTop: '25vh' }}>
           {models.map((model, index) => (
             <div key={model.id} className="relative">
               <ModelCard

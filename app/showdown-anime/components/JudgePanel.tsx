@@ -62,7 +62,7 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
         zIndex: 40,
         pointerEvents: visible ? 'auto' : 'none',
         width: '90%',
-        maxWidth: '1200px'
+        maxWidth: '1400px'
       }}
     >
       <div className="bg-white rounded-lg border-2 border-black p-6 relative overflow-hidden">
@@ -84,28 +84,41 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
               <span className="relative">JUDGE PANEL</span>
             </h3>
             
-            {/* Live commentary */}
+            {/* Live commentary - always show for web search, hide winner announcement when rankings are shown */}
             {comment && (
               <div className="relative inline-block mt-2" style={{ maxWidth: '600px' }}>
-                {/* Animated gradient border */}
-                <div 
-                  className="absolute -inset-0.5 rounded-lg opacity-75"
-                  style={{
-                    background: 'linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b, #fbbf24)',
-                    backgroundSize: '300% 300%',
-                    animation: 'gradient-shift 3s ease infinite'
-                  }}
-                />
-                <div className="relative bg-white rounded-lg px-4 py-3">
-                  <p className="font-mono text-base font-medium text-gray-800" style={{ 
-                    letterSpacing: '0.02em',
-                    wordBreak: 'break-word',
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: '1.5'
-                  }}>
-                    {comment}
-                  </p>
-                </div>
+                {/* Show if: not showing final rankings OR comment contains search indicators */}
+                {(!models.every(m => m.status === 'complete' || m.status === 'judged') || 
+                  comment.includes('🔍') || comment.includes('✅') || comment.includes('Evaluating')) && (
+                  <>
+                    {/* Animated gradient border */}
+                    <div 
+                      className="absolute -inset-0.5 rounded-lg opacity-75"
+                      style={{
+                        background: 'linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b, #fbbf24)',
+                        backgroundSize: '300% 300%',
+                        animation: 'gradient-shift 3s ease infinite'
+                      }}
+                    />
+                    <div className="relative bg-white rounded-lg px-4 py-3">
+                      <p className="font-mono text-base font-medium text-gray-800" style={{ 
+                        letterSpacing: '0.02em',
+                        wordBreak: 'break-word',
+                        whiteSpace: 'pre-wrap',
+                        lineHeight: '1.5'
+                      }}>
+                        {comment}
+                      </p>
+                      {/* Web search progress indicator */}
+                      {comment.includes('🔍 Performing web search') && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-amber-500 border-t-transparent rounded-full" />
+                          <span className="text-sm text-amber-700">Searching for current documentation...</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -151,7 +164,14 @@ export default function JudgePanel({ totalCost, models, className, comment, visi
         {/* Accuracy vs Soundness Cards - shown when models are complete */}
         {models.every(m => m.status === 'complete' || m.status === 'judged') && rankings.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <h4 className="text-sm uppercase tracking-wider text-gray-500 mb-3">Accuracy vs Soundness Analysis</h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm uppercase tracking-wider text-gray-500">Accuracy vs Soundness Analysis</h4>
+              {rankings.every(r => r.honesty < 3) && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 rounded-full">
+                  <span className="text-xs font-medium text-amber-800">🔍 No web search • Results may contain hallucinations</span>
+                </div>
+              )}
+            </div>
             <div className="flex gap-4 justify-center">
               {rankings.map((item) => (
                 <AccuracyCard

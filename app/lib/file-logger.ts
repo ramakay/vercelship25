@@ -4,17 +4,26 @@ import path from 'path';
 export class FileLogger {
   private logFilePath: string;
   private sessionId: string;
+  private isProduction: boolean;
   
   constructor(logType: 'api' | 'client' = 'api') {
     this.sessionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const logsDir = path.join(process.cwd(), 'logs');
-    this.logFilePath = path.join(logsDir, `${logType}-${this.sessionId}.log`);
+    this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
     
-    // Ensure logs directory exists
-    this.ensureLogDirectory();
+    if (!this.isProduction) {
+      const logsDir = path.join(process.cwd(), 'logs');
+      this.logFilePath = path.join(logsDir, `${logType}-${this.sessionId}.log`);
+      // Ensure logs directory exists
+      this.ensureLogDirectory();
+    } else {
+      // In production, we'll use console.log only
+      this.logFilePath = '';
+    }
   }
   
   private async ensureLogDirectory() {
+    if (this.isProduction) return;
+    
     const logsDir = path.dirname(this.logFilePath);
     try {
       await fs.mkdir(logsDir, { recursive: true });
@@ -33,20 +42,22 @@ export class FileLogger {
       sessionId: this.sessionId
     };
     
-    const logLine = JSON.stringify(logEntry) + '\n';
+    // Always log to console
+    const consoleMsg = `[${timestamp}] [${level}] ${message}`;
+    if (data) {
+      console.log(consoleMsg, data);
+    } else {
+      console.log(consoleMsg);
+    }
     
-    try {
-      await fs.appendFile(this.logFilePath, logLine);
-      
-      // Also log to console
-      const consoleMsg = `[${timestamp}] [${level}] ${message}`;
-      if (data) {
-        console.log(consoleMsg, data);
-      } else {
-        console.log(consoleMsg);
+    // Only write to file in development
+    if (!this.isProduction) {
+      const logLine = JSON.stringify(logEntry) + '\n';
+      try {
+        await fs.appendFile(this.logFilePath, logLine);
+      } catch (error) {
+        console.error('Failed to write to log file:', error);
       }
-    } catch (error) {
-      console.error('Failed to write to log file:', error);
     }
   }
   

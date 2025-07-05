@@ -96,6 +96,13 @@ export default function AccuracyCard({ model, accuracy, soundness, honesty, visi
           <span>Balanced response</span>
         )}
       </div>
+      
+      {/* Hallucination warning */}
+      {honesty < 3 && (
+        <div className="mt-2 px-2 py-1 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+          <span className="font-medium">⚠️ May hallucinate:</span> No web search performed
+        </div>
+      )}
     </div>
   );
 }
