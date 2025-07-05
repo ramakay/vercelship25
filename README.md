@@ -359,7 +359,10 @@ cp .env.example .env.local
 Required environment variables:
 ```
 AI_GATEWAY_API_KEY=your_vercel_ai_gateway_key
+OPENAI_API_KEY=your_openai_api_key  # Required for judge evaluation with web search
 ```
+
+> **Note on API Keys**: The OpenAI API key is required because Vercel's AI Gateway currently doesn't support tool calling (except for Gemini's search grounding). The judge uses OpenAI's Responses API directly for web search capabilities.
 
 ### Development Commands
 
@@ -649,6 +652,16 @@ const streamResponse = (text: string, elementId: string) => {
   }, 100);
 };
 ```
+
+## Community Discovery Request
+
+**🔍 Help Wanted: AI Gateway Tool Support**
+
+If you figure out how to use OpenAI's tool calling (functions) through Vercel's AI Gateway, please open an issue or PR! Currently, we use a hybrid approach:
+- Main models (Grok, Claude, Gemini) → through AI Gateway
+- Judge with web search → direct OpenAI API
+
+We'd love to unify everything through the Gateway once tool support is available.
 
 ## Contributing
 
