@@ -19,7 +19,7 @@ export default function MarkdownRenderer({ text, className = '' }: MarkdownRende
         if (!part.trim()) return null;
         
         // Process markdown formatting
-        let formatted = part
+        const formatted = part
           // Headers
           .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
           .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold mt-6 mb-3">$1</h2>')
