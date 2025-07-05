@@ -61,6 +61,14 @@ export default function ShowdownAnimePage() {
         </div>
       )}
 
+      {/* Background blur overlay - visible when not active */}
+      {!isShowActive && (
+        <div 
+          className="fixed inset-0 bg-white/30 backdrop-blur-md z-40"
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
+      
       {/* Main stage */}
       <AnimeStage 
         isActive={isShowActive} 
