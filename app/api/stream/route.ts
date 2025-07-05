@@ -308,13 +308,11 @@ Search only official vercel.com documentation pages, blog posts, and announcemen
             let searchInfo = '';
             
             try {
-              // Perform real web search using Gemini with search grounding
-              await logger.log('INFO', 'Calling Gemini with search grounding enabled');
+              // Perform web search using GPT-4o-mini (judge model)
+              await logger.log('INFO', 'Judge performing web search with GPT-4o-mini');
               
               const searchResult = streamText({
-                model: gateway('google/gemini-2.5-pro', {
-                  useSearchGrounding: true,
-                }),
+                model: gateway('openai/gpt-4o-mini'),
                 prompt: searchPrompt,
                 temperature: 0.1,
               });
